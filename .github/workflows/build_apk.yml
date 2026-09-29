@@ -11,8 +11,6 @@ jobs:
   build:
     name: Build Flutter APK
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout Repository
@@ -41,28 +39,32 @@ jobs:
         working-directory: mobile
         run: flutter pub get
 
+      - name: Analyze Dart Code
+        working-directory: mobile
+        run: flutter analyze || true
+
       - name: Build APK (Release Mode)
         working-directory: mobile
         run: |
           set -o pipefail
           flutter build apk --release -v 2>&1 | tee ../build.log
 
-      - name: Print error annotations
+      - name: Upload Error Log to Pastebin on Failure
         if: failure()
         run: |
-          grep -i -E "(error:|failure|exception|what went wrong)" ../build.log | head -n 15 | while read -r line; do
-            echo "::error::$line"
-          done
-
-      - name: Push build log to branch on failure
-        if: failure()
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git checkout -B build-logs
-          git add -f ../build.log
-          git commit -m "Upload build failure log" || true
-          git push -f origin build-logs || true
+          python3 -c "
+          import urllib.request
+          try:
+              with open('build.log', 'r', errors='ignore') as f:
+                  lines = f.readlines()
+              tail = ''.join(lines[-300:])
+              req = urllib.request.Request('https://paste.rs', data=tail.encode('utf-8'), method='POST')
+              with urllib.request.urlopen(req) as resp:
+                  url = resp.read().decode('utf-8').strip()
+                  print(f'::error title=BuildLog::Log uploaded to: {url}')
+          except Exception as e:
+              print(f'::error title=LogUploadFailed::{e}')
+          "
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
