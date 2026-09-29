@@ -46,26 +46,30 @@ jobs:
           set -o pipefail
           flutter build apk --release --android-skip-build-dependency-validation -v 2>&1 | tee ../build.log
 
-      - name: Upload Full Error Log on Failure
+      - name: Report Error Annotations on Failure
         if: failure()
         run: |
           python3 -c "
-          import urllib.request
-          try:
-              with open('build.log', 'r', errors='ignore') as f:
-                  text = f.read()
-              req = urllib.request.Request('https://paste.rs', data=text.encode('utf-8'), method='POST')
-              with urllib.request.urlopen(req) as resp:
-                  url = resp.read().decode('utf-8').strip()
-                  print(f'::error title=FullLogURL::Complete build log: {url}')
-              lines = text.splitlines()
-              for i, l in enumerate(lines):
-                  if 'What went wrong:' in l or 'FAILURE: Build failed' in l:
-                      msg = '%0A'.join(lines[i:i+20])
-                      print(f'::error title=WhatWentWrong::{msg}')
-                      break
-          except Exception as e:
-              print(f'::error title=LogUploadFailed::{e}')
+          with open('build.log', 'r', errors='ignore') as f:
+              lines = f.read().splitlines()
+
+          for i, l in enumerate(lines):
+              if '* What went wrong:' in l:
+                  msg = '%0A'.join(lines[i:min(len(lines), i+35)])
+                  print(f'::error title=WhatWentWrong::{msg}')
+                  break
+
+          for i, l in enumerate(lines):
+              if 'Caused by:' in l:
+                  msg = '%0A'.join(lines[i:min(len(lines), i+20)])
+                  print(f'::error title=CausedBy::{msg}')
+                  break
+
+          for i, l in enumerate(lines):
+              if 'Error:' in l and 'DependencyValidation' not in l:
+                  msg = '%0A'.join(lines[i:min(len(lines), i+15)])
+                  print(f'::error title=ErrorLine::{msg}')
+                  break
           "
 
       - name: Upload APK Artifact
