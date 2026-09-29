@@ -33,7 +33,9 @@ jobs:
 
       - name: Generate Android Gradle Wrapper & Platform Files
         working-directory: mobile
-        run: flutter create . --platforms=android --android-language java
+        run: |
+          flutter create . --platforms=android --org com.learnova --project-name learnova --android-language java
+          rm -rf android/app/src/main/java/com/learnova/mobile
 
       - name: Install Dependencies
         working-directory: mobile
