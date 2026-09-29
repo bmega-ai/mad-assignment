@@ -90,7 +90,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
-                        children: [
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                           // Overall Attendance Card
                           Card(
                             elevation: 4,
@@ -244,6 +246,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             }).toList(),
                           ],
                         ],
+                        ),
                       ),
                     ),
     );
