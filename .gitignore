@@ -41,6 +41,8 @@ mobile/.pub/
 **/android/captures/
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+*.apk
+*.zip
 
 # Python / Django
 backend/db.sqlite3
