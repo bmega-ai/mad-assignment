@@ -48,7 +48,7 @@ jobs:
           flutter build apk --release --android-skip-build-dependency-validation -v 2>&1 | tee ../build.log
 
       - name: Report Error Annotations on Failure
-        if: failure()
+        if: always()
         run: |
           python3 -c "
           import os
@@ -90,7 +90,7 @@ jobs:
           "
 
       - name: Upload Build Log on Failure
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log

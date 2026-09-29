@@ -5,6 +5,9 @@ allprojects {
         maven {
             url 'https://storage.googleapis.com/download.flutter.io'
         }
+        maven {
+            url 'https://jitpack.io'
+        }
     }
     configurations.all {
         resolutionStrategy {
@@ -12,10 +15,8 @@ allprojects {
             force 'androidx.core:core-ktx:1.13.1'
         }
     }
-    tasks.whenTaskAdded { task ->
-        if (task.name.contains("AarMetadata")) {
-            task.enabled = false
-        }
+    tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+        enabled = false
     }
 }
 
