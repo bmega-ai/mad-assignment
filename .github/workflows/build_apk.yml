@@ -40,17 +40,13 @@ jobs:
         working-directory: mobile
         run: flutter pub get
 
-      - name: Analyze Dart Code
-        working-directory: mobile
-        run: flutter analyze || true
-
       - name: Build APK (Release Mode)
         working-directory: mobile
         run: |
           set -o pipefail
           flutter build apk --release --android-skip-build-dependency-validation -v 2>&1 | tee ../build.log
 
-      - name: Upload Error Log to Pastebin on Failure
+      - name: Upload Full Error Log on Failure
         if: failure()
         run: |
           python3 -c "
@@ -58,15 +54,16 @@ jobs:
           try:
               with open('build.log', 'r', errors='ignore') as f:
                   text = f.read()
-              pos = text.find('Target kernel_snapshot_program failed')
-              if pos != -1:
-                  snippet = text[max(0, pos - 4000):pos + 1000]
-              else:
-                  snippet = text[-4000:]
-              req = urllib.request.Request('https://paste.rs', data=snippet.encode('utf-8'), method='POST')
+              req = urllib.request.Request('https://paste.rs', data=text.encode('utf-8'), method='POST')
               with urllib.request.urlopen(req) as resp:
                   url = resp.read().decode('utf-8').strip()
-                  print(f'::error title=KernelSnapshotError::Log: {url}')
+                  print(f'::error title=FullLogURL::Complete build log: {url}')
+              lines = text.splitlines()
+              for i, l in enumerate(lines):
+                  if 'What went wrong:' in l or 'FAILURE: Build failed' in l:
+                      msg = '%0A'.join(lines[i:i+20])
+                      print(f'::error title=WhatWentWrong::{msg}')
+                      break
           except Exception as e:
               print(f'::error title=LogUploadFailed::{e}')
           "
