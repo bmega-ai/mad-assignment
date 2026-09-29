@@ -11,6 +11,8 @@ jobs:
   build:
     name: Build Flutter APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -45,20 +47,22 @@ jobs:
           set -o pipefail
           flutter build apk --release -v 2>&1 | tee ../build.log
 
-      - name: Print error summary on failure
+      - name: Print error annotations
         if: failure()
         run: |
-          echo "## Build Failure Details" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          tail -n 150 build.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -i -E "(error:|failure|exception|what went wrong)" ../build.log | head -n 15 | while read -r line; do
+            echo "::error::$line"
+          done
 
-      - name: Upload Build Log on Failure
+      - name: Push build log to branch on failure
         if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-failure-log
-          path: build.log
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout -B build-logs
+          git add -f ../build.log
+          git commit -m "Upload build failure log" || true
+          git push -f origin build-logs || true
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
