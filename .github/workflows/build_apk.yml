@@ -53,24 +53,43 @@ jobs:
           with open('build.log', 'r', errors='ignore') as f:
               lines = f.read().splitlines()
 
+          # 1. Capture Kotlin/Java compiler errors
+          compile_errors = [l for l in lines if l.strip().startswith('e:') or ': error:' in l or 'e: /' in l]
+          if compile_errors:
+              msg = '%0A'.join(compile_errors[:20])
+              print(f'::error title=CompilerErrors::{msg}')
+
+          # 2. Capture context around compile task failure
+          for i, l in enumerate(lines):
+              if ':app:compile' in l and 'FAILED' in l:
+                  start = max(0, i - 30)
+                  end = min(len(lines), i + 10)
+                  msg = '%0A'.join(lines[start:end])
+                  print(f'::error title=CompileTaskFailure::{msg}')
+                  break
+
+          # 3. Capture Gradle What went wrong
           for i, l in enumerate(lines):
               if '* What went wrong:' in l:
                   msg = '%0A'.join(lines[i:min(len(lines), i+35)])
                   print(f'::error title=WhatWentWrong::{msg}')
                   break
 
+          # 4. Capture Caused by
           for i, l in enumerate(lines):
               if 'Caused by:' in l:
                   msg = '%0A'.join(lines[i:min(len(lines), i+20)])
                   print(f'::error title=CausedBy::{msg}')
                   break
-
-          for i, l in enumerate(lines):
-              if 'Error:' in l and 'DependencyValidation' not in l:
-                  msg = '%0A'.join(lines[i:min(len(lines), i+15)])
-                  print(f'::error title=ErrorLine::{msg}')
-                  break
           "
+
+      - name: Upload Build Log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -78,3 +97,4 @@ jobs:
           name: learnova-app-release
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
