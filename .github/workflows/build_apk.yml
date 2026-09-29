@@ -34,7 +34,7 @@ jobs:
 
       - name: Generate Android Gradle Wrapper & Platform Files
         working-directory: mobile
-        run: flutter create . --platforms=android
+        run: flutter create . --platforms=android --android-language java
 
       - name: Install Dependencies
         working-directory: mobile
