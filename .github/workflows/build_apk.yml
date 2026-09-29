@@ -27,7 +27,6 @@ jobs:
         with:
           flutter-version: '3.24.5'
           channel: 'stable'
-          cache: true
 
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses || true
@@ -50,6 +49,11 @@ jobs:
         if: failure()
         run: |
           python3 -c "
+          import os
+          if not os.path.exists('build.log'):
+              print('No build.log found.')
+              exit(0)
+
           with open('build.log', 'r', errors='ignore') as f:
               lines = f.read().splitlines()
 
@@ -90,6 +94,7 @@ jobs:
           name: build-log
           path: build.log
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
