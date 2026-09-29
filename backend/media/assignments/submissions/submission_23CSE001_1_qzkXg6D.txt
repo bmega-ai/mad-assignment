@@ -1,0 +1,1 @@
+Design and build a responsive Flutter application utilizing Provider for state management, clean architecture, and Material 3 design principles.
