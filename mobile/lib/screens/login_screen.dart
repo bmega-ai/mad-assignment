@@ -7,6 +7,7 @@ import '../core/constants/api_constants.dart';
 import 'student_home.dart';
 import 'faculty_home.dart';
 import 'admin_home.dart';
+import '../widgets/learnova_logo.dart';
 
 enum AuthViewMode {
   roleSelection,
@@ -69,10 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => nextScreen),
       );
     } else if (mounted) {
+      final msg = authProvider.errorMessage ?? 'Invalid ID or password. Please verify your credentials.';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid ID or password. Please verify your credentials.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -190,27 +193,42 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // 1. Role Selection View
   Widget _buildRoleSelectionView(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+
     return Column(
       key: const ValueKey('roleSelection'),
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Icon(Icons.school, size: 84, color: theme.colorScheme.primary),
-        const SizedBox(height: 12),
-        const Text(
+        const Center(
+          child: LearnovaLogo(
+            size: 84,
+            borderRadius: 22,
+            showShadow: true,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
           'LEARNOVA',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 32,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             letterSpacing: 2.5,
+            color: primaryTextColor,
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
+        Text(
           'Learn. Connect. Experience.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: secondaryTextColor,
+          ),
         ),
         const SizedBox(height: 48),
 
@@ -230,16 +248,24 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Choose Your Account',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: primaryTextColor,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Select your role to access your personalized campus dashboard',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: secondaryTextColor,
+                ),
               ),
               const SizedBox(height: 32),
 
@@ -249,6 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 subtitle: 'Submit assignments, view grades, attendance & timetable',
                 icon: '👨‍🎓',
                 color: theme.colorScheme.primary,
+                subtitleColor: secondaryTextColor,
                 onTap: () {
                   setState(() => _currentMode = AuthViewMode.studentLogin);
                 },
@@ -261,6 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 subtitle: 'Manage classes, review submissions & OCR similarity reports',
                 icon: '👨‍🏫',
                 color: Colors.teal.shade700,
+                subtitleColor: secondaryTextColor,
                 onTap: () {
                   setState(() => _currentMode = AuthViewMode.teacherLogin);
                 },
@@ -277,6 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required String subtitle,
     required String icon,
     required Color color,
+    required Color subtitleColor,
     required VoidCallback onTap,
   }) {
     return Material(
@@ -311,7 +340,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: subtitleColor,
+                      ),
                     ),
                   ],
                 ),
@@ -327,6 +360,14 @@ class _LoginScreenState extends State<LoginScreen> {
   // 2. Student Login View
   Widget _buildStudentLoginView(ThemeData theme) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final inputTextStyle = TextStyle(
+      color: primaryTextColor,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    );
 
     return Column(
       key: const ValueKey('studentLogin'),
@@ -335,14 +376,14 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(Icons.arrow_back, color: primaryTextColor),
               onPressed: () {
                 setState(() => _currentMode = AuthViewMode.roleSelection);
               },
             ),
-            const Text(
+            Text(
               'Back to Roles',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor),
             ),
           ],
         ),
@@ -353,13 +394,22 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Text('👨‍🎓', style: TextStyle(fontSize: 56)),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Student Portal',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: primaryTextColor,
+                ),
               ),
-              const Text(
+              const SizedBox(height: 4),
+              Text(
                 'Sign in with your Student ID',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(
+                  color: secondaryTextColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -372,6 +422,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               TextFormField(
                 controller: _studentIdController,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Student ID / Username',
                   hintText: 'e.g. 23CSE001',
@@ -384,6 +435,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: _studentPasswordController,
                 obscureText: !_studentPasswordVisible,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
@@ -399,7 +451,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => _showForgotPasswordDialog('Student'),
-                  child: const Text('Forgot Password?'),
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -415,11 +473,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: authProvider.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Student Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : const Text('Student Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ],
@@ -429,17 +488,22 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.08),
+            color: isDark ? const Color(0xFF1E3A8A).withOpacity(0.35) : const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.5)),
           ),
           child: Row(
-            children: const [
-              Icon(Icons.info_outline, color: Colors.blue, size: 20),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.info_outline, color: Color(0xFF2563EB), size: 20),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Demo Student ID: 23CSE001 | Password: student123',
-                  style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -452,6 +516,14 @@ class _LoginScreenState extends State<LoginScreen> {
   // 3. Teacher Login View
   Widget _buildTeacherLoginView(ThemeData theme) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final inputTextStyle = TextStyle(
+      color: primaryTextColor,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    );
 
     return Column(
       key: const ValueKey('teacherLogin'),
@@ -460,14 +532,14 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(Icons.arrow_back, color: primaryTextColor),
               onPressed: () {
                 setState(() => _currentMode = AuthViewMode.roleSelection);
               },
             ),
-            const Text(
+            Text(
               'Back to Roles',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor),
             ),
           ],
         ),
@@ -478,13 +550,22 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Text('👨‍🏫', style: TextStyle(fontSize: 56)),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Teacher Portal',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: primaryTextColor,
+                ),
               ),
-              const Text(
+              const SizedBox(height: 4),
+              Text(
                 'Sign in with your Teacher ID',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(
+                  color: secondaryTextColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -497,6 +578,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               TextFormField(
                 controller: _teacherIdController,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Teacher ID / Username',
                   hintText: 'e.g. FAC001',
@@ -509,6 +591,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: _teacherPasswordController,
                 obscureText: !_teacherPasswordVisible,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
@@ -524,7 +607,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => _showForgotPasswordDialog('Teacher'),
-                  child: const Text('Forgot Password?'),
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.teal.shade700,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -545,7 +634,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: authProvider.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Teacher Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : const Text('Teacher Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ],
@@ -557,7 +646,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("New Teacher? ", style: TextStyle(fontSize: 14)),
+            Text("New Teacher? ", style: TextStyle(fontSize: 14, color: secondaryTextColor, fontWeight: FontWeight.w500)),
             GestureDetector(
               onTap: () {
                 setState(() => _currentMode = AuthViewMode.teacherRegister);
@@ -579,17 +668,22 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.teal.withOpacity(0.08),
+            color: isDark ? const Color(0xFF042F2E).withOpacity(0.4) : const Color(0xFFF0FDFA),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.teal.withOpacity(0.5)),
           ),
           child: Row(
-            children: const [
-              Icon(Icons.info_outline, color: Colors.teal, size: 20),
-              SizedBox(width: 10),
+            children: [
+              Icon(Icons.info_outline, color: Colors.teal.shade700, size: 20),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Demo Teacher ID: FAC001 | Password: faculty123',
-                  style: TextStyle(fontSize: 12, color: Colors.teal, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -601,6 +695,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // 4. Teacher Registration View
   Widget _buildTeacherRegisterView(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final inputTextStyle = TextStyle(
+      color: primaryTextColor,
+      fontSize: 15,
+      fontWeight: FontWeight.w600,
+    );
+
     return Column(
       key: const ValueKey('teacherRegister'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -608,26 +711,27 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(Icons.arrow_back, color: primaryTextColor),
               onPressed: () {
                 setState(() => _currentMode = AuthViewMode.teacherLogin);
               },
             ),
-            const Text(
+            Text(
               'Back to Teacher Login',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor),
             ),
           ],
         ),
         const SizedBox(height: 12),
 
-        const Text(
+        Text(
           'Faculty Registration',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryTextColor),
         ),
-        const Text(
+        const SizedBox(height: 4),
+        Text(
           'Submit your credentials for departmental approval',
-          style: TextStyle(color: Colors.grey, fontSize: 13),
+          style: TextStyle(color: secondaryTextColor, fontSize: 13, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 24),
 
@@ -637,6 +741,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               TextFormField(
                 controller: _regFullNameController,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Full Name',
                   hintText: 'e.g. Dr. Suresh Verma',
@@ -648,6 +753,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _regTeacherIdController,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Teacher ID',
                   hintText: 'e.g. FAC003',
@@ -660,6 +766,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: _regEmailController,
                 keyboardType: TextInputType.emailAddress,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Institutional Email',
                   hintText: 'suresh@learnova.edu',
@@ -672,6 +779,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: _regPhoneController,
                 keyboardType: TextInputType.phone,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Phone Number',
                   hintText: '+91 98765 43210',
@@ -685,6 +793,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _regDeptController,
+                      style: inputTextStyle,
                       decoration: InputDecoration(
                         labelText: 'Department',
                         hintText: 'CSE / ECE',
@@ -697,6 +806,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _regDesignationController,
+                      style: inputTextStyle,
                       decoration: InputDecoration(
                         labelText: 'Designation',
                         hintText: 'Asst. Professor',
@@ -711,6 +821,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: _regPasswordController,
                 obscureText: true,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
@@ -722,6 +833,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: _regConfirmPasswordController,
                 obscureText: true,
+                style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
                   prefixIcon: const Icon(Icons.lock_reset),
@@ -741,14 +853,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: _isRegistering
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Submit Teacher Registration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : const Text('Submit Teacher Registration', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Note: Newly registered teacher accounts are set to PENDING status until verified by Campus Administration.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: secondaryTextColor, fontWeight: FontWeight.w500),
               ),
             ],
           ),

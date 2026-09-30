@@ -19,31 +19,33 @@ class ApiService {
     };
   }
 
+  static const Duration timeoutDuration = Duration(seconds: 10);
+
   static Future<http.Response> get(String endpoint, {Map<String, String>? queryParams}) async {
     Uri url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     if (queryParams != null && queryParams.isNotEmpty) {
       url = url.replace(queryParameters: queryParams);
     }
     final headers = await getHeaders();
-    return http.get(url, headers: headers);
+    return http.get(url, headers: headers).timeout(timeoutDuration);
   }
 
   static Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await getHeaders();
-    return http.post(url, headers: headers, body: jsonEncode(body));
+    return http.post(url, headers: headers, body: jsonEncode(body)).timeout(timeoutDuration);
   }
 
   static Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await getHeaders();
-    return http.put(url, headers: headers, body: jsonEncode(body));
+    return http.put(url, headers: headers, body: jsonEncode(body)).timeout(timeoutDuration);
   }
 
   static Future<http.Response> delete(String endpoint) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await getHeaders();
-    return http.delete(url, headers: headers);
+    return http.delete(url, headers: headers).timeout(timeoutDuration);
   }
 
   /// Multipart upload for submitting assignment with file or event media

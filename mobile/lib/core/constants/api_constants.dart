@@ -1,6 +1,6 @@
 class ApiConstants {
-  // Use 10.0.2.2 for Android Emulator, or your PC's IP for real devices.
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  // Configured with your PC's local Wi-Fi IP so the physical phone APK connects directly.
+  static String baseUrl = 'http://10.165.8.252:8000/api';
   
   // Auth endpoints
   static const String login = '/auth/login/';

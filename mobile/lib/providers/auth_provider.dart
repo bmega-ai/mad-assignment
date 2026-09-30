@@ -9,10 +9,12 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _token;
   String? _role;
+  String? _errorMessage;
 
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
   String? get role => _role;
+  String? get errorMessage => _errorMessage;
 
   Future<void> checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -24,6 +26,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> login(String username, String password) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
@@ -46,9 +49,17 @@ class AuthProvider with ChangeNotifier {
         _isLoading = false;
         notifyListeners();
         return true;
+      } else {
+        try {
+          final data = jsonDecode(response.body);
+          _errorMessage = data['detail'] ?? data['error'] ?? 'Invalid ID or password.';
+        } catch (_) {
+          _errorMessage = 'Invalid ID or password. (Status: ${response.statusCode})';
+        }
       }
     } catch (e) {
-      print('Login error: \$e');
+      print('Login error: $e');
+      _errorMessage = 'Cannot connect to server at ${ApiConstants.baseUrl}. Please verify your network and server IP.';
     }
 
     _isLoading = false;

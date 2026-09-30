@@ -5,6 +5,7 @@ import 'login_screen.dart';
 import 'student_home.dart';
 import 'faculty_home.dart';
 import 'admin_home.dart';
+import '../widgets/learnova_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -97,10 +98,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               scale: _scaleAnimation,
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: const Icon(
-                  Icons.school,
-                  size: 100,
-                  color: Colors.white,
+                child: const LearnovaLogo(
+                  size: 110,
+                  borderRadius: 28,
+                  showShadow: true,
                 ),
               ),
             ),

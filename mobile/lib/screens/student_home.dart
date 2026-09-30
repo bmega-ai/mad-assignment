@@ -13,6 +13,7 @@ import 'faculty_directory_screen.dart';
 import 'notes_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/learnova_logo.dart';
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({Key? key}) : super(key: key);
@@ -82,13 +83,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     return Scaffold(
       appBar: _currentIndex == 0
           ? AppBar(
-              title: const Text('Learnova Dashboard'),
+              leading: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: LearnovaLogo(size: 38, borderRadius: 10, showShadow: false),
+              ),
+              title: const Text('Learnova Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19)),
               actions: [
                 Stack(
                   alignment: Alignment.center,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.notifications_outlined),
+                      tooltip: 'Notifications',
                       onPressed: () {
                         setState(() => _currentIndex = 3);
                       },
@@ -112,7 +118,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.logout_rounded),
                   tooltip: 'Logout',
                   onPressed: () async {
                     await authProvider.logout();
@@ -133,19 +139,54 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: theme.colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Timetable'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        unselectedItemColor: const Color(0xFF64748B),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+        elevation: 8,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month_outlined),
+            activeIcon: Icon(Icons.calendar_month_rounded),
+            label: 'Timetable',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.photo_library_outlined),
+            activeIcon: Icon(Icons.photo_library_rounded),
+            label: 'Events',
+          ),
+          BottomNavigationBarItem(
+            icon: Badge(
+              isLabelVisible: _unreadNotificationsCount > 0,
+              label: Text('$_unreadNotificationsCount'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            activeIcon: Badge(
+              isLabelVisible: _unreadNotificationsCount > 0,
+              label: Text('$_unreadNotificationsCount'),
+              child: const Icon(Icons.notifications_active_rounded),
+            ),
+            label: 'Alerts',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded),
+            activeIcon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
         ],
       ),
     );
   }
 
   Widget _buildDashboardView(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+
     return RefreshIndicator(
       onRefresh: _fetchDashboardData,
       child: SingleChildScrollView(
@@ -170,10 +211,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white24,
-                      child: const Icon(Icons.school, color: Colors.white, size: 36),
+                    const LearnovaLogo(
+                      size: 58,
+                      borderRadius: 16,
+                      showShadow: false,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -209,7 +250,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   child: _buildMetricCard(
                     'Attendance',
                     '$_attendancePercentage%',
-                    Icons.check_circle_outline,
+                    Icons.verified_user_rounded,
                     _attendancePercentage >= 85 ? Colors.green : Colors.orange,
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
                   ),
@@ -219,7 +260,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   child: _buildMetricCard(
                     'Pending Tasks',
                     '$_pendingAssignmentsCount',
-                    Icons.assignment_outlined,
+                    Icons.pending_actions_rounded,
                     Colors.orange,
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen())),
                   ),
@@ -229,7 +270,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   child: _buildMetricCard(
                     'Events',
                     '$_upcomingEventsCount',
-                    Icons.event_available_outlined,
+                    Icons.celebration_rounded,
                     Colors.purple,
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen())),
                   ),
@@ -242,15 +283,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Today's Schedule",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryTextColor),
                 ),
-                TextButton(
+                TextButton.icon(
                   onPressed: () {
                     setState(() => _currentIndex = 1);
                   },
-                  child: const Text('View All'),
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                  label: const Text('View All'),
                 ),
               ],
             ),
@@ -258,10 +300,20 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             if (_todayClasses.isEmpty)
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                child: const Padding(
-                  padding: EdgeInsets.all(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Center(
-                    child: Text('No classes remaining for today. Great job!', style: TextStyle(color: Colors.grey)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'No classes remaining for today. Great job!',
+                          style: TextStyle(color: secondaryTextColor, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               )
@@ -273,22 +325,22 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       leading: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
+                          color: theme.colorScheme.primary.withOpacity(0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.class_, color: theme.colorScheme.primary, size: 20),
+                        child: Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary, size: 20),
                       ),
-                      title: Text(c['subject'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('${c['start_time']} - ${c['end_time']} • Room ${c['room']}'),
+                      title: Text(c['subject'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor)),
+                      subtitle: Text('${c['start_time']} - ${c['end_time']} • Room ${c['room']}', style: TextStyle(color: secondaryTextColor)),
                     ),
                   )),
 
             const SizedBox(height: 20),
 
             // Services & Features Grid
-            const Text(
+            Text(
               'Campus Services',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
             const SizedBox(height: 12),
             GridView.count(
@@ -299,23 +351,32 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 0.95,
               children: [
-                _buildServiceCard('Timetable', Icons.calendar_today, Colors.blue, () {
+                _buildServiceCard('Timetable', Icons.calendar_month_rounded, Colors.blue, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const TimetableScreen()));
                 }),
-                _buildServiceCard('Attendance', Icons.fact_check, Colors.green, () {
+                _buildServiceCard('Attendance', Icons.how_to_reg_rounded, Colors.green, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen()));
                 }),
-                _buildServiceCard('Assignments', Icons.assignment, Colors.orange, () {
+                _buildServiceCard('Assignments', Icons.task_alt_rounded, Colors.orange, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen()));
                 }),
-                _buildServiceCard('Study Notes', Icons.menu_book, Colors.teal, () {
+                _buildServiceCard('Study Notes', Icons.menu_book_rounded, Colors.teal, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesScreen()));
                 }),
-                _buildServiceCard('Events', Icons.event_available, Colors.purple, () {
+                _buildServiceCard('Events', Icons.celebration_rounded, Colors.purple, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen()));
                 }),
-                _buildServiceCard('Faculty', Icons.people_alt, Colors.indigo, () {
+                _buildServiceCard('Faculty', Icons.badge_rounded, Colors.indigo, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const FacultyDirectoryScreen()));
+                }),
+                _buildServiceCard('Notifications', Icons.notifications_active_rounded, Colors.deepOrange, () {
+                  setState(() => _currentIndex = 3);
+                }),
+                _buildServiceCard('OCR / Uploads', Icons.document_scanner_rounded, Colors.cyan, () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen()));
+                }),
+                _buildServiceCard('My Profile', Icons.account_circle_rounded, Colors.blueGrey, () {
+                  setState(() => _currentIndex = 4);
                 }),
               ],
             ),
@@ -336,7 +397,14 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
           child: Column(
             children: [
-              Icon(icon, color: color, size: 24),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
               const SizedBox(height: 6),
               Text(
                 value,
@@ -345,7 +413,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               const SizedBox(height: 2),
               Text(
                 label,
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -363,7 +431,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -371,9 +439,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: 26),
               ),
               const SizedBox(height: 8),
               Text(

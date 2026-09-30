@@ -6,6 +6,9 @@ import 'events_screen.dart';
 import 'faculty_directory_screen.dart';
 import 'assignments_screen.dart';
 import 'timetable_screen.dart';
+import 'notes_screen.dart';
+import 'notifications_screen.dart';
+import '../widgets/learnova_logo.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({Key? key}) : super(key: key);
@@ -17,10 +20,15 @@ class AdminHomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Console • Learnova'),
+        leading: const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: LearnovaLogo(size: 38, borderRadius: 10, showShadow: false),
+        ),
+        title: const Text('Admin Console • Learnova', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Logout',
             onPressed: () async {
               await authProvider.logout();
               Navigator.of(context).pushAndRemoveUntil(
@@ -45,17 +53,17 @@ class AdminHomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: LinearGradient(
-                    colors: [Colors.teal.shade700, Colors.blueGrey.shade800],
+                    colors: [Colors.indigo.shade800, Colors.deepPurple.shade700],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white24,
-                      child: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 36),
+                    const LearnovaLogo(
+                      size: 58,
+                      borderRadius: 16,
+                      showShadow: false,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -68,7 +76,7 @@ class AdminHomeScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'System Administrator • All Access',
+                            'System Administrator • Master Controls',
                             style: TextStyle(color: Colors.white70, fontSize: 13),
                           ),
                         ],
@@ -94,30 +102,44 @@ class AdminHomeScreen extends StatelessWidget {
                 _buildCard(
                   context,
                   'Campus Events',
-                  Icons.event,
+                  Icons.celebration_rounded,
                   Colors.purple,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen())),
                 ),
                 _buildCard(
                   context,
                   'Faculty Directory',
-                  Icons.badge,
+                  Icons.badge_rounded,
                   Colors.indigo,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FacultyDirectoryScreen())),
                 ),
                 _buildCard(
                   context,
                   'Assignments',
-                  Icons.assignment,
+                  Icons.task_alt_rounded,
                   Colors.orange,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen())),
                 ),
                 _buildCard(
                   context,
                   'Master Timetable',
-                  Icons.schedule,
+                  Icons.calendar_month_rounded,
                   Colors.blue,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TimetableScreen())),
+                ),
+                _buildCard(
+                  context,
+                  'Broadcast Circulars',
+                  Icons.campaign_rounded,
+                  Colors.redAccent,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                ),
+                _buildCard(
+                  context,
+                  'Study Notes Library',
+                  Icons.menu_book_rounded,
+                  Colors.teal,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesScreen())),
                 ),
               ],
             ),

@@ -13,6 +13,7 @@ import 'events_screen.dart';
 import 'notifications_screen.dart';
 import 'assignments_screen.dart';
 import 'timetable_screen.dart';
+import '../widgets/learnova_logo.dart';
 
 class FacultyHomeScreen extends StatefulWidget {
   const FacultyHomeScreen({Key? key}) : super(key: key);
@@ -71,14 +72,19 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal.shade800,
-        title: const Text('Teacher Portal • Learnova'),
+        leading: const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: LearnovaLogo(size: 38, borderRadius: 10, showShadow: false),
+        ),
+        title: const Text('Teacher Portal • Learnova', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Refresh',
             onPressed: _fetchTeacherDashboard,
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',
             onPressed: () async {
               await authProvider.logout();
@@ -116,10 +122,10 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 32,
-                        backgroundColor: Colors.white24,
-                        child: const Text('👨‍🏫', style: TextStyle(fontSize: 34)),
+                      const LearnovaLogo(
+                        size: 58,
+                        borderRadius: 16,
+                        showShadow: false,
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -212,23 +218,23 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 mainAxisSpacing: 10,
                 childAspectRatio: 0.95,
                 children: [
-                  _buildServiceCard('Create Assignment', Icons.add_circle_outline, Colors.teal, () async {
+                  _buildServiceCard('Create Assignment', Icons.post_add_rounded, Colors.teal, () async {
                     final res = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateAssignmentScreen()));
                     if (res == true) _fetchTeacherDashboard();
                   }),
-                  _buildServiceCard('Review Submissions', Icons.rate_review, Colors.orange, () {
+                  _buildServiceCard('Review Submissions', Icons.rule_folder_rounded, Colors.orange, () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherReviewRequestsScreen()));
                   }),
-                  _buildServiceCard('Attendance', Icons.fact_check, Colors.green, () {
+                  _buildServiceCard('Attendance', Icons.how_to_reg_rounded, Colors.green, () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen()));
                   }),
-                  _buildServiceCard('Circulars', Icons.campaign, Colors.red, () {
+                  _buildServiceCard('Circulars', Icons.campaign_rounded, Colors.red, () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
                   }),
-                  _buildServiceCard('Notes', Icons.menu_book, Colors.indigo, () {
+                  _buildServiceCard('Notes', Icons.menu_book_rounded, Colors.indigo, () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesScreen()));
                   }),
-                  _buildServiceCard('Events', Icons.event_available, Colors.purple, () {
+                  _buildServiceCard('Events', Icons.celebration_rounded, Colors.purple, () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsScreen()));
                   }),
                 ],
