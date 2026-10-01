@@ -59,8 +59,8 @@ jobs:
           with open('build.log', 'r', errors='ignore') as f:
               lines = f.read().splitlines()
 
-          # 1. Capture Kotlin/Java compiler errors
-          compile_errors = [l for l in lines if l.strip().startswith('e:') or ': error:' in l or 'e: /' in l]
+          # 1. Capture Kotlin/Java/Dart compiler errors
+          compile_errors = [l for l in lines if l.strip().startswith('e:') or ': error:' in l or 'e: /' in l or 'Error: ' in l or 'Target kernel_snapshot' in l]
           if compile_errors:
               msg = '%0A'.join(compile_errors[:20])
               print(f'::error title=CompilerErrors::{msg}')
