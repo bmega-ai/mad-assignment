@@ -220,19 +220,38 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'Good Day, $_studentName 👋',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          SizedBox(
+                            width: double.infinity,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Good Day, $_studentName 👋',
+                                maxLines: 1,
+                                softWrap: false,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            _departmentInfo,
-                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _departmentInfo,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -255,7 +274,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: _buildMetricCard(
                     'Pending Tasks',
@@ -265,7 +284,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentsScreen())),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: _buildMetricCard(
                     'Events',
@@ -308,9 +327,17 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       children: [
                         const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 20),
                         const SizedBox(width: 8),
-                        Text(
-                          'No classes remaining for today. Great job!',
-                          style: TextStyle(color: secondaryTextColor, fontWeight: FontWeight.w500),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'No classes remaining for today. Great job!',
+                              maxLines: 1,
+                              softWrap: false,
+                              style: TextStyle(color: secondaryTextColor, fontWeight: FontWeight.w600),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -330,8 +357,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         ),
                         child: Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary, size: 20),
                       ),
-                      title: Text(c['subject'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor)),
-                      subtitle: Text('${c['start_time']} - ${c['end_time']} • Room ${c['room']}', style: TextStyle(color: secondaryTextColor)),
+                      title: Text(
+                        c['subject'] ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor),
+                      ),
+                      subtitle: Text(
+                        '${c['start_time']} - ${c['end_time']} • Room ${c['room']}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: secondaryTextColor),
+                      ),
                     ),
                   )),
 
@@ -349,7 +386,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               physics: const NeverScrollableScrollPhysics(),
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 0.95,
+              childAspectRatio: 1.02,
               children: [
                 _buildServiceCard('Timetable', Icons.calendar_month_rounded, Colors.blue, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const TimetableScreen()));
@@ -387,6 +424,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   }
 
   Widget _buildMetricCard(String label, String value, IconData icon, Color color, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -394,27 +432,49 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(height: 6),
-              Text(
-                value,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+                  ),
+                ),
               ),
               const SizedBox(height: 2),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
-                textAlign: TextAlign.center,
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
             ],
           ),
@@ -424,6 +484,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   }
 
   Widget _buildServiceCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -431,23 +492,35 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: color, size: 26),
               ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

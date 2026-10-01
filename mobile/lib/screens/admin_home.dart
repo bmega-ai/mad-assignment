@@ -70,14 +70,32 @@ class AdminHomeScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
-                          Text(
-                            'Campus Administration',
-                            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Campus Administration',
+                                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                softWrap: false,
+                              ),
+                            ),
                           ),
                           SizedBox(height: 4),
-                          Text(
-                            'System Administrator • Master Controls',
-                            style: TextStyle(color: Colors.white70, fontSize: 13),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'System Administrator • Master Controls',
+                                style: TextStyle(color: Colors.white70, fontSize: 13),
+                                maxLines: 1,
+                                softWrap: false,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -170,10 +188,18 @@ class AdminHomeScreen extends StatelessWidget {
                 child: Icon(icon, size: 30, color: color),
               ),
               const SizedBox(height: 10),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
               ),
             ],
           ),

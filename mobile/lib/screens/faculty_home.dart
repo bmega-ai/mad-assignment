@@ -131,19 +131,38 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'Good Morning, $_teacherName 👋',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            SizedBox(
+                              width: double.infinity,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Good Morning, $_teacherName 👋',
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '$_designation\n$_department',
-                              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '$_designation • $_department',
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -216,7 +235,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.95,
+                childAspectRatio: 1.05,
                 children: [
                   _buildServiceCard('Create Assignment', Icons.post_add_rounded, Colors.teal, () async {
                     final res = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateAssignmentScreen()));
@@ -286,10 +305,14 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                       title: Text(
                         '${sub['student_name']} (${sub['student_id']})',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
                         '${sub['assignment_title']} • v${sub['version']}',
                         style: const TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -331,14 +354,32 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        label,
+                        style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                   Icon(icon, color: color, size: 20),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
-                value,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+                  maxLines: 1,
+                  softWrap: false,
+                ),
               ),
             ],
           ),
@@ -355,7 +396,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -365,10 +406,18 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
               ),
             ],
           ),
