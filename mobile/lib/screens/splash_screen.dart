@@ -61,16 +61,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final isDark = theme.brightness == Brightness.dark;
+
+        final sheetBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+        final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
+        final subtitleColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+        final fieldFill = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+        final inputTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+        final labelColor = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
+        final hintColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+        final iconColor = isDark ? const Color(0xFF818CF8) : const Color(0xFF2563EB);
+        final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
           ),
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(color: Colors.black26, blurRadius: 20, spreadRadius: 5),
+            decoration: BoxDecoration(
+              color: sheetBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: const [
+                BoxShadow(color: Colors.black38, blurRadius: 24, spreadRadius: 6),
               ],
             ),
             padding: const EdgeInsets.all(24.0),
@@ -81,26 +94,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.indigo.shade50,
+                        color: isDark ? const Color(0xFF312E81) : Colors.indigo.shade50,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.wifi_tethering_rounded, color: Colors.indigo.shade700, size: 26),
+                      child: Icon(Icons.wifi_tethering_rounded, color: isDark ? const Color(0xFFA5B4FC) : Colors.indigo.shade700, size: 28),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Connect to Server',
-                            style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: titleColor),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
                             'Enter your PC\'s Wi-Fi IPv4 address',
-                            style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                            style: TextStyle(fontSize: 13, color: subtitleColor, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -111,18 +124,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.amber.shade300),
+                    color: isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isDark ? const Color(0xFFB45309) : const Color(0xFFFCD34D)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.amber.shade900, size: 18),
-                      const SizedBox(width: 8),
-                      const Expanded(
+                      Icon(Icons.info_outline, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706), size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: Text(
                           'Run "ipconfig" in PC CMD to find your Wireless LAN IPv4 Address.',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF78350F), fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? const Color(0xFFFEF3C7) : const Color(0xFF92400E),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -131,26 +148,52 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 const SizedBox(height: 16),
                 TextField(
                   controller: ipController,
+                  style: TextStyle(
+                    color: inputTextColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Server IPv4 Address',
+                    labelStyle: TextStyle(
+                      color: labelColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                     hintText: 'e.g. 10.143.206.252',
-                    prefixIcon: const Icon(Icons.desktop_windows_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                    prefixIcon: Icon(Icons.desktop_windows_outlined, color: iconColor),
                     filled: true,
-                    fillColor: Colors.grey.shade50,
+                    fillColor: fieldFill,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                   ),
                   keyboardType: TextInputType.text,
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: portController,
+                  style: TextStyle(
+                    color: inputTextColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Port (Default: 8000)',
+                    labelStyle: TextStyle(
+                      color: labelColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                     hintText: '8000',
-                    prefixIcon: const Icon(Icons.numbers_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                    prefixIcon: Icon(Icons.numbers_outlined, color: iconColor),
                     filled: true,
-                    fillColor: Colors.grey.shade50,
+                    fillColor: fieldFill,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -168,13 +211,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo.shade600,
+                    backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 2,
+                    elevation: 3,
                   ),
-                  child: const Text('Connect & Continue', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                  child: const Text('Connect & Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
@@ -184,7 +227,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   },
                   child: Text(
                     'Use Default (${ApiConstants.serverIp})',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                    style: TextStyle(
+                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],

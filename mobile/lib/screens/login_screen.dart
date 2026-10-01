@@ -142,17 +142,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordDialog(String roleTitle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('$roleTitle Password Reset'),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Text(
+          '$roleTitle Password Reset',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
+        ),
         content: Text(
           'For security, password resets are handled by your Campus Administration / HOD office.\n\nPlease contact admin@learnova.edu with your institutional ID to reset credentials.',
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
+              ),
+            ),
           ),
         ],
       ),
@@ -160,33 +179,62 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showServerConfigDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final controller = TextEditingController(text: ApiConstants.baseUrl);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
           children: [
-            Icon(Icons.dns_rounded, color: Colors.blueAccent),
-            SizedBox(width: 8),
-            Text('Server IP Settings', style: TextStyle(fontSize: 18)),
+            const Icon(Icons.dns_rounded, color: Colors.blueAccent),
+            const SizedBox(width: 8),
+            Text(
+              'Server IP Settings',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Enter the Django server API URL (e.g. your PC Wi-Fi IP):',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
               decoration: InputDecoration(
                 labelText: 'Backend API URL',
+                labelStyle: TextStyle(
+                  color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                  fontWeight: FontWeight.bold,
+                ),
                 hintText: 'http://10.143.206.252:8000/api',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                prefixIcon: const Icon(Icons.link),
+                hintStyle: TextStyle(
+                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                ),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                prefixIcon: Icon(Icons.link, color: isDark ? const Color(0xFF818CF8) : const Color(0xFF2563EB)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? const Color(0xFF818CF8) : const Color(0xFF2563EB), width: 2.0)),
               ),
             ),
           ],
@@ -194,9 +242,19 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               final newUrl = controller.text.trim();
               if (newUrl.isNotEmpty) {
@@ -208,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SnackBar(content: Text('Server URL set to: ${ApiConstants.baseUrl}')),
               );
             },
-            child: const Text('Save'),
+            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           ),
         ],
       ),
@@ -218,6 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: SafeArea(
@@ -233,16 +292,24 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextButton.icon(
                 onPressed: _showServerConfigDialog,
-                icon: const Icon(Icons.wifi_tethering, size: 16),
+                icon: Icon(
+                  Icons.wifi_tethering,
+                  size: 16,
+                  color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                ),
                 label: Text(
                   'Server: ${ApiConstants.baseUrl.replaceAll('/api', '').replaceAll('http://', '')}',
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                  ),
                 ),
               ),
             ],
@@ -269,7 +336,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildRoleSelectionView(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
     final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
+    final studentColor = isDark ? const Color(0xFF818CF8) : const Color(0xFF2563EB);
+    final teacherColor = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E);
 
     return Column(
       key: const ValueKey('roleSelection'),
@@ -300,7 +369,7 @@ class _LoginScreenState extends State<LoginScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: secondaryTextColor,
           ),
         ),
@@ -348,7 +417,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 title: 'STUDENT',
                 subtitle: 'Submit assignments, view grades, attendance & timetable',
                 icon: '👨‍🎓',
-                color: theme.colorScheme.primary,
+                color: studentColor,
                 subtitleColor: secondaryTextColor,
                 onTap: () {
                   setState(() => _currentMode = AuthViewMode.studentLogin);
@@ -361,7 +430,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 title: 'TEACHER',
                 subtitle: 'Manage classes, review submissions & OCR similarity reports',
                 icon: '👨‍🏫',
-                color: Colors.teal.shade700,
+                color: teacherColor,
                 subtitleColor: secondaryTextColor,
                 onTap: () {
                   setState(() => _currentMode = AuthViewMode.teacherLogin);
@@ -382,6 +451,8 @@ class _LoginScreenState extends State<LoginScreen> {
     required Color subtitleColor,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -390,9 +461,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            border: Border.all(color: color.withOpacity(isDark ? 0.6 : 0.4), width: 1.5),
             borderRadius: BorderRadius.circular(16),
-            color: color.withOpacity(0.05),
+            color: color.withOpacity(isDark ? 0.15 : 0.06),
           ),
           child: Row(
             children: [
@@ -415,7 +486,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: subtitleColor,
                       ),
@@ -436,11 +507,18 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final isDark = theme.brightness == Brightness.dark;
     final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
+    final inputTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final labelColor = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
+    final hintColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+    final fieldFill = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final iconColor = isDark ? const Color(0xFF818CF8) : const Color(0xFF2563EB);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+
     final inputTextStyle = TextStyle(
-      color: primaryTextColor,
+      color: inputTextColor,
       fontSize: 16,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.bold,
     );
 
     return Column(
@@ -457,7 +535,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             Text(
               'Back to Roles',
-              style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor),
+              style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
           ],
         ),
@@ -482,7 +560,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   color: secondaryTextColor,
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -499,9 +577,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Student ID / Username',
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                   hintText: 'e.g. 23CSE001',
-                  prefixIcon: const Icon(Icons.badge_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                  prefixIcon: Icon(Icons.badge_outlined, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.trim().isEmpty ? 'Enter Student ID' : null,
               ),
@@ -512,12 +596,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
+                  prefixIcon: Icon(Icons.lock_outline, color: iconColor),
                   suffixIcon: IconButton(
-                    icon: Icon(_studentPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(_studentPasswordVisible ? Icons.visibility : Icons.visibility_off, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                     onPressed: () => setState(() => _studentPasswordVisible = !_studentPasswordVisible),
                   ),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.isEmpty ? 'Enter Password' : null,
               ),
@@ -528,8 +617,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     'Forgot Password?',
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
                     ),
                   ),
                 ),
@@ -547,7 +636,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: authProvider.isLoading
@@ -562,20 +652,20 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E3A8A).withOpacity(0.35) : const Color(0xFFEFF6FF),
+            color: isDark ? const Color(0xFF1E3A8A).withOpacity(0.4) : const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.5)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: Color(0xFF2563EB), size: 20),
+              Icon(Icons.info_outline, color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB), size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Demo Student ID: 23CSE001 | Password: student123',
                   style: TextStyle(
                     fontSize: 13,
-                    color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
+                    color: isDark ? const Color(0xFFBFDBFE) : const Color(0xFF1E40AF),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -592,11 +682,18 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final isDark = theme.brightness == Brightness.dark;
     final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
+    final inputTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final labelColor = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E);
+    final hintColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+    final fieldFill = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final iconColor = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+
     final inputTextStyle = TextStyle(
-      color: primaryTextColor,
+      color: inputTextColor,
       fontSize: 16,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.bold,
     );
 
     return Column(
@@ -613,7 +710,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             Text(
               'Back to Roles',
-              style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor),
+              style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
           ],
         ),
@@ -638,7 +735,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   color: secondaryTextColor,
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -655,9 +752,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Teacher ID / Username',
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                   hintText: 'e.g. FAC001',
-                  prefixIcon: const Icon(Icons.badge_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                  prefixIcon: Icon(Icons.badge_outlined, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.trim().isEmpty ? 'Enter Teacher ID' : null,
               ),
@@ -668,12 +771,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
+                  prefixIcon: Icon(Icons.lock_outline, color: iconColor),
                   suffixIcon: IconButton(
-                    icon: Icon(_teacherPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(_teacherPasswordVisible ? Icons.visibility : Icons.visibility_off, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                     onPressed: () => setState(() => _teacherPasswordVisible = !_teacherPasswordVisible),
                   ),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.isEmpty ? 'Enter Password' : null,
               ),
@@ -684,8 +792,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     'Forgot Password?',
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.teal.shade700,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E),
                     ),
                   ),
                 ),
@@ -703,7 +811,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade700,
+                    backgroundColor: isDark ? const Color(0xFF0D9488) : const Color(0xFF0F766E),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: authProvider.isLoading
@@ -720,7 +829,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("New Teacher? ", style: TextStyle(fontSize: 14, color: secondaryTextColor, fontWeight: FontWeight.w500)),
+            Text("New Teacher? ", style: TextStyle(fontSize: 14, color: secondaryTextColor, fontWeight: FontWeight.w600)),
             GestureDetector(
               onTap: () {
                 setState(() => _currentMode = AuthViewMode.teacherRegister);
@@ -730,7 +839,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.teal.shade700,
+                  color: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E),
                   decoration: TextDecoration.underline,
                 ),
               ),
@@ -742,20 +851,20 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF042F2E).withOpacity(0.4) : const Color(0xFFF0FDFA),
+            color: isDark ? const Color(0xFF042F2E).withOpacity(0.5) : const Color(0xFFF0FDFA),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.teal.withOpacity(0.5)),
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.teal.shade700, size: 20),
+              Icon(Icons.info_outline, color: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E), size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Demo Teacher ID: FAC001 | Password: faculty123',
                   style: TextStyle(
                     fontSize: 13,
-                    color: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E),
+                    color: isDark ? const Color(0xFF99F6E4) : const Color(0xFF0F766E),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -771,11 +880,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildTeacherRegisterView(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
     final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final secondaryTextColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
+    final inputTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final labelColor = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E);
+    final hintColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+    final fieldFill = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final iconColor = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+
     final inputTextStyle = TextStyle(
-      color: primaryTextColor,
+      color: inputTextColor,
       fontSize: 15,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.bold,
     );
 
     return Column(
@@ -792,7 +908,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             Text(
               'Back to Teacher Login',
-              style: TextStyle(fontWeight: FontWeight.w600, color: primaryTextColor),
+              style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor),
             ),
           ],
         ),
@@ -805,7 +921,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 4),
         Text(
           'Submit your credentials for departmental approval',
-          style: TextStyle(color: secondaryTextColor, fontSize: 13, fontWeight: FontWeight.w500),
+          style: TextStyle(color: secondaryTextColor, fontSize: 13, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 24),
 
@@ -818,9 +934,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Full Name',
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                   hintText: 'e.g. Dr. Suresh Verma',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                  prefixIcon: Icon(Icons.person_outline, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.trim().isEmpty ? 'Enter full name' : null,
               ),
@@ -830,9 +952,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Teacher ID',
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                   hintText: 'e.g. FAC003',
-                  prefixIcon: const Icon(Icons.badge_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                  prefixIcon: Icon(Icons.badge_outlined, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.trim().isEmpty ? 'Enter Teacher ID' : null,
               ),
@@ -843,9 +971,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Institutional Email',
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                   hintText: 'suresh@learnova.edu',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                  prefixIcon: Icon(Icons.email_outlined, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || !val.contains('@') ? 'Enter valid email' : null,
               ),
@@ -856,9 +990,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Phone Number',
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                   hintText: '+91 98765 43210',
-                  prefixIcon: const Icon(Icons.phone_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                  prefixIcon: Icon(Icons.phone_outlined, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
               ),
               const SizedBox(height: 14),
@@ -870,8 +1010,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: inputTextStyle,
                       decoration: InputDecoration(
                         labelText: 'Department',
+                        labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                         hintText: 'CSE / ECE',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                        filled: true,
+                        fillColor: fieldFill,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                       ),
                       validator: (val) => val == null || val.isEmpty ? 'Required' : null,
                     ),
@@ -883,8 +1029,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: inputTextStyle,
                       decoration: InputDecoration(
                         labelText: 'Designation',
+                        labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
                         hintText: 'Asst. Professor',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                        filled: true,
+                        fillColor: fieldFill,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                       ),
                       validator: (val) => val == null || val.isEmpty ? 'Required' : null,
                     ),
@@ -898,8 +1050,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
+                  prefixIcon: Icon(Icons.lock_outline, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.length < 6 ? 'Min 6 characters' : null,
               ),
@@ -910,8 +1067,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: inputTextStyle,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
-                  prefixIcon: const Icon(Icons.lock_reset),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelStyle: TextStyle(color: labelColor, fontWeight: FontWeight.bold, fontSize: 14),
+                  prefixIcon: Icon(Icons.lock_reset, color: iconColor),
+                  filled: true,
+                  fillColor: fieldFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor, width: 1.5)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: iconColor, width: 2.0)),
                 ),
                 validator: (val) => val == null || val.isEmpty ? 'Confirm password' : null,
               ),
@@ -922,7 +1084,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isRegistering ? null : _registerTeacher,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade700,
+                    backgroundColor: isDark ? const Color(0xFF0D9488) : const Color(0xFF0F766E),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: _isRegistering
@@ -934,7 +1097,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'Note: Newly registered teacher accounts are set to PENDING status until verified by Campus Administration.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: secondaryTextColor, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 12, color: secondaryTextColor, fontWeight: FontWeight.w600),
               ),
             ],
           ),
