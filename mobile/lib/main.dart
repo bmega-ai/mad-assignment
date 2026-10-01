@@ -5,7 +5,11 @@ import 'core/theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart';
 
-void main() {
+import 'core/constants/api_constants.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiConstants.loadBaseUrl();
   runApp(
     MultiProvider(
       providers: [

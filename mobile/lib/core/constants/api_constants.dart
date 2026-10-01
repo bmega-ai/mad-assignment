@@ -1,6 +1,26 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 class ApiConstants {
-  // Configured with your PC's local Wi-Fi IP so the physical phone APK connects directly.
-  static String baseUrl = 'http://10.165.8.252:8000/api';
+  // Configured with your PC's current local Wi-Fi IP so the physical phone APK connects directly.
+  static String baseUrl = 'http://10.143.206.252:8000/api';
+  
+  static Future<void> loadBaseUrl() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString('custom_base_url');
+      if (saved != null && saved.trim().isNotEmpty) {
+        baseUrl = saved.trim();
+      }
+    } catch (_) {}
+  }
+
+  static Future<void> setBaseUrl(String newUrl) async {
+    baseUrl = newUrl.trim();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('custom_base_url', baseUrl);
+    } catch (_) {}
+  }
   
   // Auth endpoints
   static const String login = '/auth/login/';

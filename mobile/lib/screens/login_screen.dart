@@ -159,6 +159,62 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _showServerConfigDialog() {
+    final controller = TextEditingController(text: ApiConstants.baseUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.dns_rounded, color: Colors.blueAccent),
+            SizedBox(width: 8),
+            Text('Server IP Settings', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter the Django server API URL (e.g. your PC Wi-Fi IP):',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: 'Backend API URL',
+                hintText: 'http://10.143.206.252:8000/api',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                prefixIcon: const Icon(Icons.link),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newUrl = controller.text.trim();
+              if (newUrl.isNotEmpty) {
+                await ApiConstants.setBaseUrl(newUrl);
+                if (mounted) setState(() {});
+              }
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Server URL set to: ${ApiConstants.baseUrl}')),
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -172,6 +228,24 @@ class _LoginScreenState extends State<LoginScreen> {
               duration: const Duration(milliseconds: 300),
               child: _buildCurrentView(theme),
             ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: _showServerConfigDialog,
+                icon: const Icon(Icons.wifi_tethering, size: 16),
+                label: Text(
+                  'Server: ${ApiConstants.baseUrl.replaceAll('/api', '').replaceAll('http://', '')}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
           ),
         ),
       ),
