@@ -21,6 +21,37 @@ class ApiConstants {
       await prefs.setString('custom_base_url', baseUrl);
     } catch (_) {}
   }
+
+  static String get serverIp {
+    try {
+      final uri = Uri.parse(baseUrl);
+      return uri.host.isNotEmpty ? uri.host : '10.143.206.252';
+    } catch (_) {
+      return '10.143.206.252';
+    }
+  }
+
+  static String get serverPort {
+    try {
+      final uri = Uri.parse(baseUrl);
+      return uri.hasPort ? uri.port.toString() : '8000';
+    } catch (_) {
+      return '8000';
+    }
+  }
+
+  static Future<void> updateHostAndPort(String host, [String port = '8000']) async {
+    String cleanHost = host.trim();
+    cleanHost = cleanHost.replaceAll('http://', '').replaceAll('https://', '').replaceAll('/api', '').replaceAll('/', '');
+    if (cleanHost.contains(':')) {
+      final parts = cleanHost.split(':');
+      cleanHost = parts[0];
+      port = parts[1];
+    }
+    final cleanPort = port.trim().isEmpty ? '8000' : port.trim();
+    final fullUrl = 'http://$cleanHost:$cleanPort/api';
+    await setBaseUrl(fullUrl);
+  }
   
   // Auth endpoints
   static const String login = '/auth/login/';

@@ -19,12 +19,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
+  bool _showingPrompt = false;
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -37,9 +39,159 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      _checkAuthAndNavigate();
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (mounted) {
+        _promptServerIp();
+      }
     });
+  }
+
+  void _promptServerIp() {
+    if (_showingPrompt) return;
+    _showingPrompt = true;
+
+    final ipController = TextEditingController(text: ApiConstants.serverIp);
+    final portController = TextEditingController(text: ApiConstants.serverPort);
+
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(color: Colors.black26, blurRadius: 20, spreadRadius: 5),
+              ],
+            ),
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.wifi_tethering_rounded, color: Colors.indigo.shade700, size: 26),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Connect to Server',
+                            style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Enter your PC\'s Wi-Fi IPv4 address',
+                            style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.amber.shade900, size: 18),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Run "ipconfig" in PC CMD to find your Wireless LAN IPv4 Address.',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF78350F), fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: ipController,
+                  decoration: InputDecoration(
+                    labelText: 'Server IPv4 Address',
+                    hintText: 'e.g. 10.143.206.252',
+                    prefixIcon: const Icon(Icons.desktop_windows_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                  ),
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: portController,
+                  decoration: InputDecoration(
+                    labelText: 'Port (Default: 8000)',
+                    hintText: '8000',
+                    prefixIcon: const Icon(Icons.numbers_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    final ip = ipController.text.trim();
+                    final port = portController.text.trim();
+                    if (ip.isNotEmpty) {
+                      await ApiConstants.updateHostAndPort(ip, port);
+                    }
+                    if (mounted) {
+                      Navigator.pop(ctx);
+                      _checkAuthAndNavigate();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 2,
+                  ),
+                  child: const Text('Connect & Continue', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _checkAuthAndNavigate();
+                  },
+                  child: Text(
+                    'Use Default (${ApiConstants.serverIp})',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _checkAuthAndNavigate() async {
