@@ -86,20 +86,49 @@ def seed():
             phone="+91 98765 43211",
             status="APPROVED"
         )
+        print(" Created Faculty: FAC002 / faculty123")
     else:
         fac_prof2 = FacultyProfile.objects.get(faculty_id="FAC002")
 
-    # 4. 5 Demo Students for Multi-Student Assignment Similarity Testing
+    # Faculty 3 (Dr. Anita Desai)
+    if not User.objects.filter(username="FAC003").exists():
+        fac_user3 = User.objects.create_user(
+            username="FAC003",
+            email="anita.desai@learnova.edu",
+            password="faculty123",
+            first_name="Dr. Anita",
+            last_name="Desai",
+            role="faculty"
+        )
+        fac_prof3 = FacultyProfile.objects.create(
+            user=fac_user3,
+            faculty_id="FAC003",
+            department=dept_cse,
+            designation="Associate Professor",
+            office="Block B, Room 205",
+            phone="+91 98765 43212",
+            status="APPROVED"
+        )
+        print(" Created Faculty: FAC003 / faculty123")
+    else:
+        fac_prof3 = FacultyProfile.objects.get(faculty_id="FAC003")
+
+    # 4. 10 Demo Students with Online / Offline status
     student_specs = [
-        ("23CSE001", "Arun", "Kumar", "arun.kumar@learnova.edu", "+91 91234 56789"),
-        ("23CSE002", "Priya", "Sharma", "priya.sharma@learnova.edu", "+91 91234 56781"),
-        ("23CSE003", "Rahul", "Kumar", "rahul.kumar@learnova.edu", "+91 91234 56782"),
-        ("23CSE004", "Anjali", "Devi", "anjali.devi@learnova.edu", "+91 91234 56783"),
-        ("23CSE005", "Vikram", "Singh", "vikram.singh@learnova.edu", "+91 91234 56784"),
+        ("23CSE001", "Arun", "Kumar", "arun.kumar@learnova.edu", "+91 91234 56789", True),
+        ("23CSE002", "Priya", "Sharma", "priya.sharma@learnova.edu", "+91 91234 56781", True),
+        ("23CSE003", "Rahul", "Verma", "rahul.verma@learnova.edu", "+91 91234 56782", False),
+        ("23CSE004", "Anjali", "Devi", "anjali.devi@learnova.edu", "+91 91234 56783", True),
+        ("23CSE005", "Vikram", "Singh", "vikram.singh@learnova.edu", "+91 91234 56784", False),
+        ("23CSE006", "Sneha", "Reddy", "sneha.reddy@learnova.edu", "+91 91234 56785", True),
+        ("23CSE007", "Karthik", "Nair", "karthik.nair@learnova.edu", "+91 91234 56786", True),
+        ("23CSE008", "Meera", "Iyer", "meera.iyer@learnova.edu", "+91 91234 56787", False),
+        ("23CSE009", "Rohan", "Gupta", "rohan.gupta@learnova.edu", "+91 91234 56788", True),
+        ("23CSE010", "Divya", "Patel", "divya.patel@learnova.edu", "+91 91234 56790", False),
     ]
 
     student_profiles = {}
-    for sid, fname, lname, email, phone in student_specs:
+    for sid, fname, lname, email, phone, is_online in student_specs:
         if not User.objects.filter(username=sid).exists():
             u = User.objects.create_user(
                 username=sid,
@@ -116,11 +145,18 @@ def seed():
                 year=4,
                 section="A",
                 semester=7,
-                phone=phone
+                phone=phone,
+                is_online=is_online
             )
-            print(f" Created Student: {sid} / student123 ({fname} {lname})")
+            print(f" Created Student: {sid} / student123 ({fname} {lname}) [Online: {is_online}]")
         else:
             sp = StudentProfile.objects.get(student_id=sid)
+            sp.is_online = is_online
+            sp.year = 4
+            sp.section = "A"
+            sp.semester = 7
+            sp.department = dept_cse
+            sp.save()
         student_profiles[sid] = sp
 
     # 5. Subjects
@@ -197,6 +233,8 @@ def seed():
         ("23CSE003", text_c, "Submitted"),
         ("23CSE004", text_d, "Submitted"),
         ("23CSE005", text_e, "Submitted"),
+        ("23CSE006", "Network security involves multi-layered defense architectures including firewalls, intrusion detection, packet filtering, and SSL/TLS transport layer encryption.", "Submitted"),
+        ("23CSE007", "Authentication protocols and zero-trust security frameworks ensure each access request is authenticated, authorized, and continuously validated before granting access.", "Submitted"),
     ]
 
     for sid, text_content, sub_status in candidate_data:
@@ -373,13 +411,14 @@ def seed():
         past_date = today - timedelta(days=i)
         if past_date.weekday() < 5:
             for sub in [sub_mad, sub_cc, sub_ai, sub_sec]:
-                status_val = False if (i % 7 == 2 and sub == sub_cc) else True
-                Attendance.objects.get_or_create(
-                    student=arun_sp,
-                    subject=sub,
-                    date=past_date,
-                    defaults={"status": status_val}
-                )
+                for s_idx, (sid, sp) in enumerate(student_profiles.items()):
+                    status_val = False if ((s_idx + i) % 5 == 0) else True
+                    Attendance.objects.get_or_create(
+                        student=sp,
+                        subject=sub,
+                        date=past_date,
+                        defaults={"status": status_val}
+                    )
 
     # 11. Events
     Event.objects.get_or_create(

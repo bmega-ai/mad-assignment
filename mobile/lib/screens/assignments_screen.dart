@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../core/constants/api_constants.dart';
 import '../models/assignment.dart';
 import 'assignment_detail_screen.dart';
+import 'teacher_assignment_detail_screen.dart';
+import 'create_assignment_screen.dart';
 
 class AssignmentsScreen extends StatefulWidget {
   const AssignmentsScreen({Key? key}) : super(key: key);
@@ -15,7 +19,7 @@ class AssignmentsScreen extends StatefulWidget {
 class _AssignmentsScreenState extends State<AssignmentsScreen> {
   bool _isLoading = true;
   List<AssignmentItem> _assignments = [];
-  String _filter = 'All'; // All, Pending, Submitted
+  String _filter = 'All'; // For student: All, Pending, Submitted. For teacher: All, Active, Past Due
   String? _errorMessage;
 
   @override
@@ -52,29 +56,83 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     }
   }
 
-  List<AssignmentItem> get _filteredAssignments {
-    if (_filter == 'Pending') {
-      return _assignments.where((a) => !a.isSubmitted).toList();
-    } else if (_filter == 'Submitted') {
-      return _assignments.where((a) => a.isSubmitted).toList();
+  List<AssignmentItem> _getFilteredAssignments(bool isTeacher) {
+    if (!isTeacher) {
+      if (_filter == 'Pending') {
+        return _assignments.where((a) => !a.isSubmitted).toList();
+      } else if (_filter == 'Submitted') {
+        return _assignments.where((a) => a.isSubmitted).toList();
+      }
+      return _assignments;
+    } else {
+      if (_filter == 'Active') {
+        final now = DateTime.now();
+        return _assignments.where((a) {
+          try {
+            final dt = DateTime.parse(a.dueDate);
+            return dt.isAfter(now);
+          } catch (_) {
+            return true;
+          }
+        }).toList();
+      } else if (_filter == 'Past Due') {
+        final now = DateTime.now();
+        return _assignments.where((a) {
+          try {
+            final dt = DateTime.parse(a.dueDate);
+            return dt.isBefore(now);
+          } catch (_) {
+            return false;
+          }
+        }).toList();
+      }
+      return _assignments;
     }
-    return _assignments;
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isTeacher = authProvider.role == 'faculty' || authProvider.role == 'admin';
     final theme = Theme.of(context);
+    final filterOptions = isTeacher ? ['All', 'Active', 'Past Due'] : ['All', 'Pending', 'Submitted'];
+    final displayedAssignments = _getFilteredAssignments(isTeacher);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Assignments'),
+        title: Text(isTeacher ? 'Course Assignments' : 'Assignments'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _fetchAssignments,
           ),
+          if (isTeacher)
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Create Assignment',
+              onPressed: () async {
+                final res = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateAssignmentScreen()),
+                );
+                if (res == true) _fetchAssignments();
+              },
+            ),
         ],
       ),
+      floatingActionButton: isTeacher
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final res = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateAssignmentScreen()),
+                );
+                if (res == true) _fetchAssignments();
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('New Assignment'),
+            )
+          : null,
       body: Column(
         children: [
           // Filter Chips
@@ -82,7 +140,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: theme.colorScheme.surface,
             child: Row(
-              children: ['All', 'Pending', 'Submitted'].map((filterName) {
+              children: filterOptions.map((filterName) {
                 final isSelected = _filter == filterName;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -121,7 +179,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                           ],
                         ),
                       )
-                    : _filteredAssignments.isEmpty
+                    : displayedAssignments.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -129,7 +187,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                 Icon(Icons.assignment_turned_in, size: 64, color: Colors.grey.shade400),
                                 const SizedBox(height: 16),
                                 Text(
-                                  _filter == 'Pending' ? 'No pending assignments!' : 'No assignments found',
+                                  _filter == 'Pending'
+                                      ? 'No pending assignments!'
+                                      : 'No assignments found',
                                   style: const TextStyle(fontSize: 16, color: Colors.grey),
                                 ),
                               ],
@@ -139,9 +199,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                             onRefresh: _fetchAssignments,
                             child: ListView.builder(
                               padding: const EdgeInsets.all(16),
-                              itemCount: _filteredAssignments.length,
+                              itemCount: displayedAssignments.length,
                               itemBuilder: (context, index) {
-                                final item = _filteredAssignments[index];
+                                final item = displayedAssignments[index];
                                 final isSub = item.isSubmitted;
 
                                 return Card(
@@ -151,12 +211,21 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(16),
                                     onTap: () async {
-                                      await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AssignmentDetailScreen(assignment: item),
-                                        ),
-                                      );
+                                      if (isTeacher) {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => TeacherAssignmentDetailScreen(assignment: item),
+                                          ),
+                                        );
+                                      } else {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AssignmentDetailScreen(assignment: item),
+                                          ),
+                                        );
+                                      }
                                       _fetchAssignments();
                                     },
                                     child: Padding(
@@ -182,23 +251,48 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                                   ),
                                                 ),
                                               ),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: isSub
-                                                      ? Colors.green.withOpacity(0.15)
-                                                      : Colors.orange.withOpacity(0.15),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  isSub ? (item.userSubmission?.status ?? 'Submitted') : 'Pending',
-                                                  style: TextStyle(
-                                                    color: isSub ? Colors.green : Colors.orange,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
+                                              if (isTeacher)
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFF2563EB).withOpacity(0.12),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    border: Border.all(color: const Color(0xFF2563EB).withOpacity(0.3)),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(Icons.people_alt_rounded, size: 14, color: Color(0xFF2563EB)),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        '${item.submissionsCount} Submitted',
+                                                        style: const TextStyle(
+                                                          color: Color(0xFF2563EB),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              else
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: isSub
+                                                        ? Colors.green.withOpacity(0.15)
+                                                        : Colors.orange.withOpacity(0.15),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: Text(
+                                                    isSub ? (item.userSubmission?.status ?? 'Submitted') : 'Pending',
+                                                    style: TextStyle(
+                                                      color: isSub ? Colors.green : Colors.orange,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 12,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
                                             ],
                                           ),
                                           const SizedBox(height: 10),
@@ -231,6 +325,32 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                                               ),
                                             ],
                                           ),
+                                          if (isTeacher) ...[
+                                            const SizedBox(height: 12),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.primary.withOpacity(0.06),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.checklist_rounded, size: 16, color: theme.colorScheme.primary),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    'View Student Submissions & Grade',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: theme.colorScheme.primary,
+                                                    ),
+                                                  ),
+                                                  const Spacer(),
+                                                  Icon(Icons.chevron_right_rounded, size: 18, color: theme.colorScheme.primary),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),

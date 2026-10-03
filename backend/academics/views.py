@@ -43,6 +43,9 @@ class TimetableListView(generics.ListAPIView):
         
         return qs.order_by('day', 'start_time')
 
+from datetime import datetime, date
+from accounts.models import StudentProfile
+
 class AttendanceListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -84,11 +87,37 @@ class AttendanceListView(APIView):
             })
         elif user.role in ['faculty', 'admin']:
             subject_id = request.query_params.get('subject_id')
+            date_val = request.query_params.get('date')
+            student_id = request.query_params.get('student_id')
+
             qs = Attendance.objects.all().select_related('student', 'student__user', 'subject')
+            
+            # If faculty, limit to their assigned subjects if desired
+            if user.role == 'faculty' and hasattr(user, 'faculty_profile'):
+                fp = user.faculty_profile
+                faculty_subjects = Subject.objects.filter(faculty=fp)
+                if faculty_subjects.exists() and not subject_id:
+                    qs = qs.filter(subject__in=faculty_subjects)
+
             if subject_id:
                 qs = qs.filter(subject_id=subject_id)
-            serializer = AttendanceSerializer(qs[:100], many=True)
-            return Response({"records": serializer.data})
+            if date_val:
+                qs = qs.filter(date=date_val)
+            if student_id:
+                qs = qs.filter(student__student_id__icontains=student_id)
+
+            qs = qs.order_by('-date', 'student__student_id')
+            total = qs.count()
+            present = qs.filter(status=True).count()
+            absent = total - present
+
+            serializer = AttendanceSerializer(qs[:200], many=True)
+            return Response({
+                "records": serializer.data,
+                "total_records": total,
+                "present_count": present,
+                "absent_count": absent
+            })
             
         return Response({"error": "Profile not found"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -97,18 +126,165 @@ class AttendanceListView(APIView):
         if user.role not in ['faculty', 'admin']:
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
         
-        student_id = request.data.get('student_id')
+        # Check for bulk attendance submission
+        records = request.data.get('records')
         subject_id = request.data.get('subject_id')
-        date_val = request.data.get('date')
+        date_val = request.data.get('date') or str(date.today())
+
+        if records and isinstance(records, list):
+            if not subject_id:
+                return Response({"error": "subject_id is required for recording attendance."}, status=status.HTTP_400_BAD_REQUEST)
+
+            saved_items = []
+            for item in records:
+                s_id = item.get('student_id')
+                status_val = item.get('status', True)
+                if s_id is not None:
+                    att_obj, _ = Attendance.objects.update_or_create(
+                        student_id=s_id,
+                        subject_id=subject_id,
+                        date=date_val,
+                        defaults={'status': bool(status_val)}
+                    )
+                    saved_items.append(att_obj)
+
+            return Response({
+                "message": f"Successfully updated attendance for {len(saved_items)} students.",
+                "count": len(saved_items),
+                "date": date_val,
+                "subject_id": subject_id
+            }, status=status.HTTP_200_OK)
+
+        # Single attendance submission
+        student_id = request.data.get('student_id')
         status_val = request.data.get('status', True)
 
         try:
-            attendance = Attendance.objects.create(
+            attendance, created = Attendance.objects.update_or_create(
                 student_id=student_id,
                 subject_id=subject_id,
                 date=date_val,
-                status=status_val
+                defaults={'status': bool(status_val)}
             )
-            return Response(AttendanceSerializer(attendance).data, status=status.HTTP_201_CREATED)
+            return Response(
+                AttendanceSerializer(attendance).data,
+                status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AttendanceStudentsView(APIView):
+    """
+    Returns list of students for a given subject and date so faculty can mark or update attendance.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if user.role not in ['faculty', 'admin']:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        subject_id = request.query_params.get('subject_id')
+        date_str = request.query_params.get('date') or str(date.today())
+
+        students_qs = StudentProfile.objects.all().select_related('user', 'department')
+        
+        subject = None
+        if subject_id:
+            try:
+                subject = Subject.objects.select_related('department').get(id=subject_id)
+                filtered = students_qs.filter(
+                    department=subject.department,
+                    year=subject.year,
+                    semester=subject.semester
+                )
+                if filtered.exists():
+                    students_qs = filtered
+                else:
+                    # Fallback to same department
+                    students_qs = students_qs.filter(department=subject.department)
+            except Subject.DoesNotExist:
+                pass
+
+        # Check existing attendance for this subject and date
+        existing_attendance = {}
+        if subject_id and date_str:
+            att_qs = Attendance.objects.filter(subject_id=subject_id, date=date_str)
+            for a in att_qs:
+                existing_attendance[a.student_id] = {
+                    "attendance_id": a.id,
+                    "status": a.status
+                }
+
+        results = []
+        for sp in students_qs.order_by('student_id'):
+            att_info = existing_attendance.get(sp.id)
+            results.append({
+                "id": sp.id,
+                "student_id": sp.student_id,
+                "name": sp.user.get_full_name() or sp.user.username,
+                "department": sp.department.code if sp.department else "CSE",
+                "year": sp.year,
+                "section": sp.section,
+                "semester": sp.semester,
+                "is_marked": att_info is not None,
+                "attendance_id": att_info["attendance_id"] if att_info else None,
+                "status": att_info["status"] if att_info else True, # default to Present
+                "is_online": getattr(sp, 'is_online', False),
+            })
+
+        return Response({
+            "subject_id": subject_id,
+            "subject_name": subject.name if subject else "All Classes",
+            "subject_code": subject.code if subject else "",
+            "date": date_str,
+            "already_marked": bool(existing_attendance),
+            "students": results,
+            "total_students": len(results)
+        })
+
+
+class AttendanceDetailView(APIView):
+    """
+    Update (toggle status) or delete a single attendance record.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            att = Attendance.objects.select_related('student', 'student__user', 'subject').get(pk=pk)
+            return Response(AttendanceSerializer(att).data)
+        except Attendance.DoesNotExist:
+            return Response({"error": "Attendance record not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, pk):
+        user = request.user
+        if user.role not in ['faculty', 'admin']:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            att = Attendance.objects.get(pk=pk)
+            if 'status' in request.data:
+                att.status = bool(request.data['status'])
+            if 'date' in request.data:
+                att.date = request.data['date']
+            att.save()
+            return Response(AttendanceSerializer(att).data, status=status.HTTP_200_OK)
+        except Attendance.DoesNotExist:
+            return Response({"error": "Attendance record not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        user = request.user
+        if user.role not in ['faculty', 'admin']:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            att = Attendance.objects.get(pk=pk)
+            att.delete()
+            return Response({"message": "Attendance record deleted successfully."}, status=status.HTTP_200_OK)
+        except Attendance.DoesNotExist:
+            return Response({"error": "Attendance record not found"}, status=status.HTTP_404_NOT_FOUND)
+

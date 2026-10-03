@@ -160,7 +160,15 @@ class TeacherDashboardView(APIView):
         from academics.models import Subject
 
         fp = getattr(user, 'faculty_profile', None)
-        assignments_qs = Assignment.objects.filter(faculty=fp) if fp else Assignment.objects.all()
+        if fp:
+            from django.db.models import Q
+            assignments_qs = Assignment.objects.filter(
+                Q(faculty=fp) | Q(subject__faculty=fp)
+            )
+            if not assignments_qs.exists() and fp.department:
+                assignments_qs = Assignment.objects.filter(department=fp.department)
+        else:
+            assignments_qs = Assignment.objects.all()
         submissions_qs = AssignmentSubmission.objects.filter(assignment__in=assignments_qs)
 
         to_review_count = submissions_qs.filter(

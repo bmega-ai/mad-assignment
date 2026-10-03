@@ -41,6 +41,7 @@ class AssignmentItem {
   final int maxMarks;
   final String? attachmentUrl;
   final UserSubmission? userSubmission;
+  final int submissionsCount;
 
   AssignmentItem({
     required this.id,
@@ -53,6 +54,7 @@ class AssignmentItem {
     required this.maxMarks,
     this.attachmentUrl,
     this.userSubmission,
+    this.submissionsCount = 0,
   });
 
   bool get isSubmitted => userSubmission != null;
@@ -68,6 +70,7 @@ class AssignmentItem {
       dueDateFormatted: json['due_date_formatted'] ?? json['due_date'] ?? '',
       maxMarks: json['max_marks'] ?? 100,
       attachmentUrl: json['attachment_url'],
+      submissionsCount: json['submissions_count'] ?? 0,
       userSubmission: json['user_submission'] != null
           ? UserSubmission.fromJson(json['user_submission'])
           : null,

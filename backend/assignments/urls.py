@@ -18,12 +18,16 @@ from .views import (
     TeacherReviewListView,
     TeacherReviewActionView,
     GradeSubmissionView,
+    AssignmentRosterView,
+    AssignmentRemindView,
 )
 
 urlpatterns = [
     path('assignments/', AssignmentListCreateView.as_view(), name='assignment_list_create'),
     path('assignments/<int:pk>/', AssignmentDetailView.as_view(), name='assignment_detail'),
     path('assignments/<int:pk>/submit/', AssignmentSubmitView.as_view(), name='assignment_submit'),
+    path('assignments/<int:pk>/roster/', AssignmentRosterView.as_view(), name='assignment_roster'),
+    path('assignments/<int:pk>/remind/', AssignmentRemindView.as_view(), name='assignment_remind'),
 
     path('submissions/', SubmissionListView.as_view(), name='submission_list'),
     path('submissions/<int:pk>/', SubmissionDetailView.as_view(), name='submission_detail'),

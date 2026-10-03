@@ -25,6 +25,7 @@ class StudentProfile(models.Model):
     section = models.CharField(max_length=5)
     semester = models.IntegerField()
     phone = models.CharField(max_length=15, null=True, blank=True)
+    is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.student_id} - {self.user.get_full_name()}"

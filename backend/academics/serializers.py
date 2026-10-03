@@ -45,11 +45,15 @@ class AttendanceSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True)
     subject_code = serializers.CharField(source='subject.code', read_only=True)
     student_id = serializers.CharField(source='student.student_id', read_only=True)
+    student_profile_id = serializers.IntegerField(source='student.id', read_only=True)
     student_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Attendance
-        fields = ['id', 'student', 'student_id', 'student_name', 'subject', 'subject_name', 'subject_code', 'date', 'status']
+        fields = [
+            'id', 'student', 'student_profile_id', 'student_id', 'student_name',
+            'subject', 'subject_name', 'subject_code', 'date', 'status'
+        ]
 
     def get_student_name(self, obj):
         return obj.student.user.get_full_name() or obj.student.user.username

@@ -5,6 +5,7 @@ from rest_framework import generics, status
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
+from django.db.models import Q
 
 from .models import (
     Assignment,
@@ -47,7 +48,11 @@ class AssignmentListCreateView(generics.ListCreateAPIView):
             qs = qs.filter(department=sp.department, year=sp.year, semester=sp.semester)
         elif user.role == 'faculty' and hasattr(user, 'faculty_profile'):
             fp = user.faculty_profile
-            qs = qs.filter(faculty=fp)
+            fac_qs = qs.filter(Q(faculty=fp) | Q(subject__faculty=fp))
+            if fac_qs.exists():
+                qs = fac_qs
+            elif fp.department:
+                qs = qs.filter(department=fp.department)
         return qs.order_by('-due_date')
 
     def perform_create(self, serializer):
@@ -449,9 +454,14 @@ class TeacherReviewListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         if user.role == 'faculty' and hasattr(user, 'faculty_profile'):
-            return TeacherReview.objects.filter(
-                assignment__faculty=user.faculty_profile
-            ).order_by('-created_at')
+            fp = user.faculty_profile
+            from django.db.models import Q
+            qs = TeacherReview.objects.filter(
+                Q(assignment__faculty=fp) | Q(assignment__subject__faculty=fp)
+            )
+            if not qs.exists() and fp.department:
+                qs = TeacherReview.objects.filter(assignment__department=fp.department)
+            return qs.order_by('-created_at')
         elif user.role == 'admin':
             return TeacherReview.objects.all().order_by('-created_at')
         return TeacherReview.objects.none()
@@ -571,7 +581,12 @@ class SubmissionListView(generics.ListAPIView):
         if user.role == 'student' and hasattr(user, 'student_profile'):
             qs = qs.filter(student=user.student_profile)
         elif user.role == 'faculty' and hasattr(user, 'faculty_profile'):
-            qs = qs.filter(assignment__faculty=user.faculty_profile)
+            fp = user.faculty_profile
+            fac_qs = qs.filter(Q(assignment__faculty=fp) | Q(assignment__subject__faculty=fp))
+            if fac_qs.exists():
+                qs = fac_qs
+            elif fp.department:
+                qs = qs.filter(assignment__department=fp.department)
 
         return qs.order_by('-submitted_at')
 
@@ -594,10 +609,167 @@ class GradeSubmissionView(APIView):
             submission.teacher_feedback = feedback
         submission.save()
 
+        max_m = getattr(submission.assignment, 'max_marks', 100)
         send_notification(
             submission.student.user,
             "Assignment Graded",
-            f"Your submission for '{submission.assignment.title}' was graded: {marks}/{submission.assignment.maxMarks}."
+            f"Your submission for '{submission.assignment.title}' was graded: {marks}/{max_m}."
         )
 
         return Response(AssignmentSubmissionSerializer(submission, context={'request': request}).data)
+
+class AssignmentRosterView(APIView):
+    """
+    Returns submitted and not-submitted students for an assignment,
+    along with each student's online/offline status, submission details, marks, and similarity.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        user = request.user
+        if user.role not in ['faculty', 'admin']:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        assignment = get_object_or_404(Assignment, pk=pk)
+
+        # 1. Enrolled students for this assignment
+        from accounts.models import StudentProfile
+        enrolled_students = StudentProfile.objects.filter(
+            department=assignment.department,
+            year=assignment.year,
+            semester=assignment.semester
+        ).select_related('user', 'department').order_by('student_id')
+
+        if not enrolled_students.exists():
+            enrolled_students = StudentProfile.objects.filter(
+                department=assignment.department
+            ).select_related('user', 'department').order_by('student_id')
+
+        # 2. Existing submissions for this assignment
+        submissions = AssignmentSubmission.objects.filter(
+            assignment=assignment
+        ).select_related('student', 'student__user', 'similarity_result')
+
+        submissions_map = {sub.student_id: sub for sub in submissions}
+
+        submitted_list = []
+        not_submitted_list = []
+
+        for sp in enrolled_students:
+            is_online = getattr(sp, 'is_online', False)
+            student_name = sp.user.get_full_name() or sp.user.username
+
+            if sp.id in submissions_map:
+                sub = submissions_map[sp.id]
+                sim_res = getattr(sub, 'similarity_result', None)
+                sim_pct = sim_res.similarity_percentage if sim_res else 0.0
+                orig_pct = sim_res.originality_percentage if sim_res else 100.0
+
+                submitted_list.append({
+                    "submission_id": sub.id,
+                    "student_profile_id": sp.id,
+                    "student_id": sp.student_id,
+                    "student_name": student_name,
+                    "department": sp.department.code if sp.department else "CSE",
+                    "section": sp.section,
+                    "is_online": is_online,
+                    "submitted_at": sub.submitted_at.strftime("%b %d, %Y - %I:%M %p") if sub.submitted_at else "",
+                    "status": sub.status,
+                    "version": sub.current_version,
+                    "marks_obtained": sub.marks_obtained,
+                    "max_marks": assignment.max_marks,
+                    "teacher_feedback": sub.teacher_feedback or "",
+                    "file_url": request.build_absolute_uri(sub.file.url) if sub.file else None,
+                    "file_name": sub.file.name.split('/')[-1] if sub.file else "Submission",
+                    "similarity_percentage": sim_pct,
+                    "originality_percentage": orig_pct,
+                    "ocr_confidence": sub.ocr_confidence,
+                })
+            else:
+                not_submitted_list.append({
+                    "student_profile_id": sp.id,
+                    "student_id": sp.student_id,
+                    "student_name": student_name,
+                    "department": sp.department.code if sp.department else "CSE",
+                    "section": sp.section,
+                    "year": sp.year,
+                    "is_online": is_online,
+                    "status": "NOT_SUBMITTED",
+                })
+
+        total_enrolled = len(enrolled_students)
+        submitted_count = len(submitted_list)
+        not_submitted_count = len(not_submitted_list)
+        rate = round((submitted_count / total_enrolled * 100), 1) if total_enrolled > 0 else 0.0
+
+        return Response({
+            "assignment": {
+                "id": assignment.id,
+                "title": assignment.title,
+                "description": assignment.description,
+                "instructions": assignment.instructions,
+                "subject_code": assignment.subject.code,
+                "subject_name": assignment.subject.name,
+                "department": assignment.department.name,
+                "due_date": assignment.due_date.strftime("%b %d, %Y - %I:%M %p"),
+                "max_marks": assignment.max_marks,
+                "attachment_url": request.build_absolute_uri(assignment.attachment.url) if assignment.attachment else None,
+            },
+            "stats": {
+                "total_enrolled": total_enrolled,
+                "submitted_count": submitted_count,
+                "not_submitted_count": not_submitted_count,
+                "submission_rate": rate,
+                "online_count": sum(1 for s in enrolled_students if getattr(s, 'is_online', False)),
+            },
+            "submitted": submitted_list,
+            "not_submitted": not_submitted_list,
+        })
+
+class AssignmentRemindView(APIView):
+    """
+    Sends in-app notification reminder to a specific student or all pending students.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        user = request.user
+        if user.role not in ['faculty', 'admin']:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        assignment = get_object_or_404(Assignment, pk=pk)
+        student_profile_id = request.data.get('student_profile_id')
+
+        from accounts.models import StudentProfile
+        from notifications.models import Notification
+
+        if student_profile_id:
+            try:
+                sp = StudentProfile.objects.get(id=student_profile_id)
+                Notification.objects.create(
+                    user=sp.user,
+                    title="Assignment Reminder",
+                    message=f"Reminder: Please submit '{assignment.title}' for {assignment.subject.code}. Due date: {assignment.due_date.strftime('%b %d, %Y')}."
+                )
+                return Response({"message": f"Reminder sent to {sp.user.get_full_name()}."})
+            except StudentProfile.DoesNotExist:
+                return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            submitted_sids = assignment.submissions.values_list('student_id', flat=True)
+            pending = StudentProfile.objects.filter(
+                department=assignment.department,
+                year=assignment.year,
+                semester=assignment.semester
+            ).exclude(id__in=submitted_sids)
+
+            count = 0
+            for sp in pending:
+                Notification.objects.create(
+                    user=sp.user,
+                    title="Assignment Deadline Reminder",
+                    message=f"Urgent: You have not submitted '{assignment.title}'. Due date: {assignment.due_date.strftime('%b %d, %Y')}."
+                )
+                count += 1
+
+            return Response({"message": f"Reminders sent to {count} students.", "count": count})
+

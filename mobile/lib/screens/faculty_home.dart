@@ -8,6 +8,7 @@ import 'login_screen.dart';
 import 'teacher_review_requests_screen.dart';
 import 'create_assignment_screen.dart';
 import 'attendance_screen.dart';
+import 'teacher_attendance_screen.dart';
 import 'notes_screen.dart';
 import 'events_screen.dart';
 import 'notifications_screen.dart';
@@ -216,7 +217,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                       '$_classesCount Classes',
                       Icons.check_circle_outline,
                       Colors.green,
-                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherAttendanceScreen())),
                     ),
                   ),
                 ],
@@ -245,7 +246,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherReviewRequestsScreen()));
                   }),
                   _buildServiceCard('Attendance', Icons.how_to_reg_rounded, Colors.green, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherAttendanceScreen()));
                   }),
                   _buildServiceCard('Circulars', Icons.campaign_rounded, Colors.red, () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));

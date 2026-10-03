@@ -42,6 +42,12 @@ class ApiService {
     return http.put(url, headers: headers, body: jsonEncode(body)).timeout(timeoutDuration);
   }
 
+  static Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+    final headers = await getHeaders();
+    return http.patch(url, headers: headers, body: jsonEncode(body)).timeout(timeoutDuration);
+  }
+
   static Future<http.Response> delete(String endpoint) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await getHeaders();

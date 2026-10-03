@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiConstants {
   // Configured with your PC's current local Wi-Fi IP so the physical phone APK connects directly.
-  static String baseUrl = 'http://10.143.206.252:8000/api';
+  static String baseUrl = 'http://10.244.29.252:8000/api';
   
   static Future<void> loadBaseUrl() async {
     try {
@@ -25,9 +25,9 @@ class ApiConstants {
   static String get serverIp {
     try {
       final uri = Uri.parse(baseUrl);
-      return uri.host.isNotEmpty ? uri.host : '10.143.206.252';
+      return uri.host.isNotEmpty ? uri.host : '10.244.29.252';
     } catch (_) {
-      return '10.143.206.252';
+      return '10.244.29.252';
     }
   }
 
@@ -65,6 +65,7 @@ class ApiConstants {
   // Academic endpoints
   static const String timetable = '/timetable/';
   static const String attendance = '/attendance/';
+  static const String attendanceStudents = '/attendance/students/';
   static const String subjects = '/subjects/';
   static const String assignments = '/assignments/';
   static const String submissions = '/submissions/';
@@ -96,4 +97,8 @@ class ApiConstants {
   static String getSimilarityUrl(int id) => '/similarity/$id/';
   static String getEventMediaUrl(int id) => '/events/$id/media/';
   static String readNotificationUrl(int id) => '/notifications/$id/read/';
+  static String getAttendanceDetailUrl(int id) => '/attendance/$id/';
+  static String getAssignmentRosterUrl(int id) => '/assignments/$id/roster/';
+  static String getAssignmentRemindUrl(int id) => '/assignments/$id/remind/';
+  static String getGradeSubmissionUrl(int id) => '/submissions/$id/grade/';
 }
