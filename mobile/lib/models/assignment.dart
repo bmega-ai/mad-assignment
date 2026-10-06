@@ -37,6 +37,7 @@ class AssignmentItem {
   final String subjectName;
   final String subjectCode;
   final String facultyName;
+  final String dueDate;
   final String dueDateFormatted;
   final int maxMarks;
   final String? attachmentUrl;
@@ -50,6 +51,7 @@ class AssignmentItem {
     required this.subjectName,
     required this.subjectCode,
     required this.facultyName,
+    this.dueDate = '',
     required this.dueDateFormatted,
     required this.maxMarks,
     this.attachmentUrl,
@@ -67,6 +69,7 @@ class AssignmentItem {
       subjectName: json['subject_name'] ?? '',
       subjectCode: json['subject_code'] ?? '',
       facultyName: json['faculty_name'] ?? 'Faculty',
+      dueDate: json['due_date'] ?? '',
       dueDateFormatted: json['due_date_formatted'] ?? json['due_date'] ?? '',
       maxMarks: json['max_marks'] ?? 100,
       attachmentUrl: json['attachment_url'],

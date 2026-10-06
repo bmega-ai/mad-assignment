@@ -69,8 +69,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
         final now = DateTime.now();
         return _assignments.where((a) {
           try {
-            final dt = DateTime.parse(a.dueDate);
-            return dt.isAfter(now);
+            if (a.dueDate.isNotEmpty) {
+              final dt = DateTime.parse(a.dueDate);
+              return dt.isAfter(now);
+            }
+            return true;
           } catch (_) {
             return true;
           }
@@ -79,8 +82,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
         final now = DateTime.now();
         return _assignments.where((a) {
           try {
-            final dt = DateTime.parse(a.dueDate);
-            return dt.isBefore(now);
+            if (a.dueDate.isNotEmpty) {
+              final dt = DateTime.parse(a.dueDate);
+              return dt.isBefore(now);
+            }
+            return false;
           } catch (_) {
             return false;
           }

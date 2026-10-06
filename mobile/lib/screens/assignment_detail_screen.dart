@@ -174,6 +174,7 @@ class _AssignmentDetailScreenState extends State<AssignmentDetailScreen> {
             subjectName: _assignment.subjectName,
             subjectCode: _assignment.subjectCode,
             facultyName: _assignment.facultyName,
+            dueDate: _assignment.dueDate,
             dueDateFormatted: _assignment.dueDateFormatted,
             maxMarks: _assignment.maxMarks,
             attachmentUrl: _assignment.attachmentUrl,
