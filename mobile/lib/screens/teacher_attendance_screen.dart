@@ -65,29 +65,30 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
             _selectedSubject = _subjects.first;
           }
         });
-        if (_selectedSubject != null) {
-          _fetchStudentsForAttendance();
-        }
       }
     } catch (e) {
       debugPrint('Error fetching subjects: $e');
     }
+    // Always fetch students so list is never blank
+    _fetchStudentsForAttendance();
   }
 
   // --- Tab 1: Fetch Students for Selected Subject & Date ---
   Future<void> _fetchStudentsForAttendance() async {
-    if (_selectedSubject == null) return;
     setState(() {
       _isLoadingStudents = true;
     });
 
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    final subjectId = _selectedSubject!['id'].toString();
+    final Map<String, String> queryParams = {'date': dateStr};
+    if (_selectedSubject != null && _selectedSubject!['id'] != null) {
+      queryParams['subject_id'] = _selectedSubject!['id'].toString();
+    }
 
     try {
       final res = await ApiService.get(
         ApiConstants.attendanceStudents,
-        queryParams: {'subject_id': subjectId, 'date': dateStr},
+        queryParams: queryParams,
       );
 
       if (res.statusCode == 200) {
@@ -113,7 +114,9 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
 
   // --- Tab 1: Save / Submit Attendance ---
   Future<void> _saveAttendance() async {
-    if (_selectedSubject == null || _students.isEmpty) return;
+    if (_students.isEmpty) return;
+
+    final effectiveSubjectId = _selectedSubject?['id'] ?? (_subjects.isNotEmpty ? _subjects.first['id'] : 1);
 
     setState(() {
       _isSavingAttendance = true;
@@ -131,7 +134,7 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
       final res = await ApiService.post(
         ApiConstants.attendance,
         {
-          'subject_id': _selectedSubject!['id'],
+          'subject_id': effectiveSubjectId,
           'date': dateStr,
           'records': records,
         },
@@ -450,29 +453,42 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
                 border: Border.all(color: borderColor),
               ),
               child: DropdownButtonHideUnderline(
-                child: DropdownButton<Map<String, dynamic>>(
+                child: DropdownButton<int?>(
                   isExpanded: true,
-                  value: _selectedSubject,
+                  value: _selectedSubject?['id'] as int?,
+                  hint: const Text('All Classes', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                   icon: const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF2563EB)),
-                  items: _subjects.map((s) {
-                    return DropdownMenuItem<Map<String, dynamic>>(
-                      value: s,
-                      child: Text(
-                        '${s["code"]} - ${s["name"]}',
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (newSub) {
-                    if (newSub != null) {
-                      setState(() {
-                        _selectedSubject = newSub;
-                      });
-                      _fetchStudentsForAttendance();
-                      if (_tabController.index == 1) {
-                        _fetchAttendanceHistory();
+                  items: _subjects.isEmpty
+                      ? const [
+                          DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('All Classes', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                          )
+                        ]
+                      : _subjects.map((s) {
+                          return DropdownMenuItem<int?>(
+                            value: s['id'] as int?,
+                            child: Text(
+                              '${s["code"] ?? ""} - ${s["name"] ?? "Subject"}',
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                  onChanged: (newSubId) {
+                    setState(() {
+                      if (newSubId != null && _subjects.isNotEmpty) {
+                        _selectedSubject = _subjects.firstWhere(
+                          (s) => s['id'] == newSubId,
+                          orElse: () => _subjects.first,
+                        );
+                      } else {
+                        _selectedSubject = null;
                       }
+                    });
+                    _fetchStudentsForAttendance();
+                    if (_tabController.index == 1) {
+                      _fetchAttendanceHistory();
                     }
                   },
                 ),
@@ -510,10 +526,6 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen>
   Widget _buildMarkAttendanceTab(bool isDark) {
     if (_isLoadingStudents) {
       return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_selectedSubject == null) {
-      return const Center(child: Text('Please select a subject above.'));
     }
 
     if (_students.isEmpty) {

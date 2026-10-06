@@ -461,10 +461,18 @@ class TeacherReviewListView(generics.ListAPIView):
             )
             if not qs.exists() and fp.department:
                 qs = TeacherReview.objects.filter(assignment__department=fp.department)
-            return qs.order_by('-created_at')
+            if not qs.exists():
+                qs = TeacherReview.objects.all()
         elif user.role == 'admin':
-            return TeacherReview.objects.all().order_by('-created_at')
-        return TeacherReview.objects.none()
+            qs = TeacherReview.objects.all()
+        else:
+            return TeacherReview.objects.none()
+
+        status_param = self.request.query_params.get('status')
+        if status_param and status_param.upper() != 'ALL':
+            qs = qs.filter(request_status=status_param.upper())
+
+        return qs.order_by('-created_at')
 
 class TeacherReviewActionView(APIView):
     """
@@ -489,6 +497,17 @@ class TeacherReviewActionView(APIView):
             submission.status = 'APPROVED'
             review.teacher_feedback = feedback or "Approved by faculty upon document review."
             submission.teacher_feedback = review.teacher_feedback
+            sim_res = getattr(submission, 'similarity_result', None)
+            if sim_res:
+                sim_res.decision = 'ACCEPTED'
+                sim_res.teacher_review_required = False
+                sim_res.save()
+            TeacherReview.objects.filter(submission=submission).exclude(pk=review.pk).update(
+                request_status='APPROVED',
+                teacher_feedback=review.teacher_feedback,
+                reviewed_by=getattr(user, 'faculty_profile', None),
+                reviewed_at=timezone.now()
+            )
             send_notification(
                 student_user,
                 "✓ Assignment Approved",
@@ -538,6 +557,20 @@ class SubmissionApproveView(APIView):
         feedback = request.data.get('feedback', 'Approved by teacher')
         submission.teacher_feedback = feedback
         submission.save()
+
+        sim_res = getattr(submission, 'similarity_result', None)
+        if sim_res:
+            sim_res.decision = 'ACCEPTED'
+            sim_res.teacher_review_required = False
+            sim_res.save()
+
+        TeacherReview.objects.filter(submission=submission).update(
+            request_status='APPROVED',
+            teacher_feedback=feedback,
+            reviewed_by=getattr(request.user, 'faculty_profile', None),
+            reviewed_at=timezone.now()
+        )
+
         send_notification(submission.student.user, "✓ Assignment Approved", f"Your assignment '{submission.assignment.title}' has been approved by your teacher.")
         return Response({"status": "APPROVED", "message": "Assignment approved successfully."})
 

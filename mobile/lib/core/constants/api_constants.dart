@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiConstants {
   // Configured with your PC's current local Wi-Fi IP so the physical phone APK connects directly.
-  static String baseUrl = 'http://10.244.29.252:8000/api';
+  static String baseUrl = 'http://10.197.131.252:8000/api';
   
   static Future<void> loadBaseUrl() async {
     try {
@@ -25,9 +25,9 @@ class ApiConstants {
   static String get serverIp {
     try {
       final uri = Uri.parse(baseUrl);
-      return uri.host.isNotEmpty ? uri.host : '10.244.29.252';
+      return uri.host.isNotEmpty ? uri.host : '10.197.131.252';
     } catch (_) {
-      return '10.244.29.252';
+      return '10.197.131.252';
     }
   }
 

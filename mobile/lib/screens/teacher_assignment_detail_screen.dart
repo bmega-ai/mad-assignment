@@ -192,6 +192,45 @@ class _TeacherAssignmentDetailScreenState extends State<TeacherAssignmentDetailS
     );
   }
 
+  // --- Approve Submission ---
+  Future<void> _approveSubmission(Map<String, dynamic> item) async {
+    final subId = item['submission_id'];
+    if (subId == null) return;
+    try {
+      final res = await ApiService.post(
+        ApiConstants.getSubmissionApproveUrl(subId),
+        {'feedback': 'Approved by teacher'},
+      );
+      if (res.statusCode == 200) {
+        setState(() {
+          item['status'] = 'APPROVED';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Submission for ${item["student_name"]} approved!'),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        _fetchRoster();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to approve submission'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   // --- Send Reminder ---
   Future<void> _sendReminder({int? studentProfileId, String? studentName}) async {
     try {
@@ -449,6 +488,8 @@ class _TeacherAssignmentDetailScreenState extends State<TeacherAssignmentDetailS
                     final simPct = (item['similarity_percentage'] as num?)?.toDouble() ?? 0.0;
                     final isHighSim = simPct >= 70.0;
                     final marks = item['marks_obtained'];
+                    final statusStr = (item['status'] ?? 'Submitted').toString().toUpperCase();
+                    final isApproved = statusStr == 'APPROVED';
 
                     return Card(
                       elevation: 1,
@@ -561,16 +602,33 @@ class _TeacherAssignmentDetailScreenState extends State<TeacherAssignmentDetailS
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withOpacity(0.12),
+                                    color: isApproved
+                                        ? const Color(0xFF10B981).withOpacity(0.12)
+                                        : statusStr == 'REJECTED'
+                                            ? const Color(0xFFEF4444).withOpacity(0.12)
+                                            : const Color(0xFF2563EB).withOpacity(0.12),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Text(
-                                    item['status'] ?? 'Submitted',
-                                    style: const TextStyle(
-                                      color: Color(0xFF10B981),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (isApproved) ...[
+                                        const Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF10B981)),
+                                        const SizedBox(width: 4),
+                                      ],
+                                      Text(
+                                        item['status'] ?? 'Submitted',
+                                        style: TextStyle(
+                                          color: isApproved
+                                              ? const Color(0xFF10B981)
+                                              : statusStr == 'REJECTED'
+                                                  ? const Color(0xFFEF4444)
+                                                  : const Color(0xFF2563EB),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -646,28 +704,51 @@ class _TeacherAssignmentDetailScreenState extends State<TeacherAssignmentDetailS
                             ),
                             const SizedBox(height: 12),
 
-                            // Actions: View File and Grade Button
+                            // Actions: View File, Approve, and Grade Button
                             Row(
                               children: [
-                                if (item['file_url'] != null)
+                                if (item['file_url'] != null) ...[
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () => _openFile(item['file_url']),
-                                      icon: const Icon(Icons.file_present_rounded, size: 16),
-                                      label: const Text('View File', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      icon: const Icon(Icons.file_present_rounded, size: 15),
+                                      label: const Text('File', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(vertical: 8),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                       ),
                                     ),
                                   ),
-                                const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
+                                ],
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: isApproved ? null : () => _approveSubmission(item),
+                                    icon: Icon(
+                                      isApproved ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+                                      size: 15,
+                                    ),
+                                    label: Text(
+                                      isApproved ? 'Approved' : 'Approve',
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isApproved ? Colors.green.shade100 : const Color(0xFF10B981),
+                                      foregroundColor: isApproved ? Colors.green.shade800 : Colors.white,
+                                      disabledBackgroundColor: Colors.green.shade50,
+                                      disabledForegroundColor: Colors.green.shade700,
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () => _openGradeDialog(item),
-                                    icon: const Icon(Icons.edit_note_rounded, size: 18),
+                                    icon: const Icon(Icons.edit_note_rounded, size: 16),
                                     label: Text(
-                                      marks != null ? 'Update Grade' : 'Grade Student',
+                                      marks != null ? 'Grade ($marks)' : 'Grade',
                                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                     ),
                                     style: ElevatedButton.styleFrom(
