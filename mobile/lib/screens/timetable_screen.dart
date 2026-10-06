@@ -203,14 +203,28 @@ class _TimetableScreenState extends State<TimetableScreen> {
                                                   ),
                                                 ),
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.grey.shade200,
+                                                    color: theme.brightness == Brightness.dark
+                                                        ? const Color(0xFF0F172A)
+                                                        : const Color(0xFFEFF6FF),
                                                     borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(
+                                                      color: theme.brightness == Brightness.dark
+                                                          ? const Color(0xFF38BDF8).withOpacity(0.5)
+                                                          : const Color(0xFF93C5FD),
+                                                      width: 1,
+                                                    ),
                                                   ),
                                                   child: Text(
                                                     item.room,
-                                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: theme.brightness == Brightness.dark
+                                                          ? const Color(0xFF38BDF8)
+                                                          : const Color(0xFF1D4ED8),
+                                                    ),
                                                   ),
                                                 ),
                                               ],

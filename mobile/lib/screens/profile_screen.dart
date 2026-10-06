@@ -68,7 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
               child: Column(
                 children: [
                   // Profile Header
@@ -179,6 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: const Text('Log Out'),
                     ),
                   ),
+                  const SizedBox(height: 36),
                 ],
               ),
             ),
@@ -187,14 +188,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 9),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.grey),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(icon, size: 19, color: Colors.grey.shade400),
+          ),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              softWrap: true,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ),
         ],
       ),
     );
